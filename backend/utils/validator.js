@@ -8,7 +8,7 @@ class Validator {
     // Validate password using regex
     static isValidPassword(password) {
         // Add your password validation regex here
-        return /^[6789]\d{9}$/.test(password);
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%?&])[A-Za-z\d@$!%?&]{6,}$/.test(password);
     }
 }
 
