@@ -1,5 +1,5 @@
 const User = require('../models/userModel');
-const { ApiError } = require('../api/ApiError');
+const { ApiError } = require('../api/ApiError');    
 
 const registerUser = async (userData) => {
     try {
@@ -52,5 +52,44 @@ const registerUser = async (userData) => {
     }
 };
 
+//login service 
 
-module.exports = { registerUser }
+// Function to find a user by email
+const findUserByEmail = async (email) => {
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            throw new ApiError(404, 'User not found');
+        }
+        return user;
+    } catch (error) {
+        // If error is an instance of ApiError, rethrow it, otherwise create a new ApiError
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(500, error.message);
+    }
+};
+
+// Function to find a user by employee ID
+const findUserByEmpId = async (empId) => {
+    try {
+        const user = await User.findOne({ empId });
+        if (!user) {
+            throw new ApiError(404, 'User not found');
+        }
+        return user;
+    } catch (error) {
+        // If error is an instance of ApiError, rethrow it, otherwise create a new ApiError
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(500, error.message);
+    }
+};
+
+module.exports = {
+    registerUser,
+    findUserByEmail,
+    findUserByEmpId
+};
