@@ -28,4 +28,4 @@ class LoginRequestDto {
 
  
 
-module.exports = LoginRequestDto;
+module.exports = {LoginRequestDto};

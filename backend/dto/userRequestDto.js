@@ -1,4 +1,6 @@
-import Validator from "../utils/validator";
+const Validator = require("../utils/validator");
+const { ApiError } = require('../api/ApiError');
+
 class UserRequestDto {
     constructor(empId, firstName, middleName, lastName, contactNumber, department, designation, image, email, password) {
         this.empId = empId;
@@ -18,26 +20,25 @@ class UserRequestDto {
 
         // Validation checks
         if (!firstName || !lastName) {
-            throw new Error('First name and last name are required');
+            throw new ApiError(400, 'First name and last name are required');
         }
 
         if (!/^[6789]\d{9}$/.test(contactNumber)) {
-            throw new Error('Invalid contact number');
+            throw new ApiError(400, 'Invalid contact number');
         }
 
         if (!department || !designation) {
-            throw new Error('Department and designation are required');
+            throw new ApiError(400, 'Department and designation are required');
         }
 
         if (email && !Validator.isValidEmail(email)) {
-            throw new Error('Invalid email address');
+            throw new ApiError(400, 'Invalid email address');
         }
 
         if (password && !Validator.isValidPassword(password)) {
-            throw new Error('Invalid password');
+            throw new ApiError(400, 'Invalid password');
         }
     }
 }
 
-
-module.exports = UserRequestDto;
+module.exports = {UserRequestDto };
