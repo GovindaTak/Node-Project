@@ -88,8 +88,51 @@ const findUserByEmpId = async (empId) => {
     }
 };
 
+const modifyUser = async (userData) => {
+    const {
+        empId,
+        firstName,
+        middleName,
+        lastName,
+        email,
+        contactNumber,
+        password,
+        department,
+        designation,
+        image
+    } = userData;
+
+    // Find user by ID
+    let user =  await User.findOne({ email });
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    // Update user data
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.middleName=middleName;
+    user.contactNumber=contactNumber;
+    user.image=image;
+    user.department=department;
+    user.designation=designation;
+    user.password=password;
+
+    // Save updated user data
+    try{
+    user = await user.save();
+    }
+    catch(error)
+    {
+        return new ApiError(500, error.message);
+    }
+    return user;
+};
+
 module.exports = {
     registerUser,
     findUserByEmail,
-    findUserByEmpId
+    findUserByEmpId,
+    modifyUser
 };

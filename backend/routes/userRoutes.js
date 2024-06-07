@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-
-const { register } = require('../controllers/userController')
+const { register,updateUser } = require('../controllers/userController')
+const {authenticateUser}=require('../middlewares/authMiddleware')
 // login import
 const { login } = require('../controllers/userController');
 
-
+router.put('/:empId',authenticateUser, updateUser);
 router.post('/', register);
 
 // login

@@ -1,6 +1,6 @@
 const { registerUser } = require('../services/userService');
 const { findUserByEmail } = require('../services/userService')
-const { findUserByEmpId } = require('../services/userService')
+const { findUserByEmpId, modifyUser } = require('../services/userService')
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
@@ -78,6 +78,7 @@ const login = asyncHandler(async (req, res) => {
     const payload = {
         user: {
             id: user.id,
+            role:user.department
         },
     };
 
@@ -90,7 +91,41 @@ const login = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { register, login };
+const updateUser = asyncHandler(async (req, res, next) => {
+    const userId = req.params.empId;
+    const userRequestData = new UserRequestDto(
+        req.body.empId,
+        req.body.firstName,
+        req.body.middleName,
+        req.body.lastName,
+        req.body.contactNumber,
+        req.body.department,
+        req.body.designation,
+        req.body.image,
+        req.body.email,
+        req.body.password
+    );
+
+    // Validate the request data
+    UserRequestDto.validate(userRequestData);
+        // Update user data using service
+        const updatedUser = await modifyUser(userRequestData);
+
+        // Create response DTO
+      const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+
+        // // Send success response
+        // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
+
+        //
+        const response = new ApiResponse(202, [{user}], "User updated successfully");
+        console.log("user res",response);
+
+        res.status(response.statusCode).json(response);
+  
+});
+
+module.exports = { register, login , updateUser};
 
 /*
 
