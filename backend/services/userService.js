@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 const { ApiError } = require('../api/ApiError');
+const {sendVerificationEmail} = require('./emailService');
 
 const registerUser = async (userData) => {
     try {
@@ -39,7 +40,16 @@ const registerUser = async (userData) => {
         if (!user) {
             throw new ApiError(500, 'User creation failed');
         }
-    
+
+        try {
+            await sendVerificationEmail(user);
+        } catch (emailError) {
+            console.error('Email verification failed:', emailError);
+            // If sending verification email fails, delete the created user
+            await User.findByIdAndDelete(user._id);
+            throw new ApiError(500, 'Registration failed, please try again');
+        }
+
         return user;
 
     } catch (error) {
@@ -47,7 +57,7 @@ const registerUser = async (userData) => {
         if (error instanceof ApiError) {
             throw error;
         }
-        console.log("***********",error.message);
+      
         throw new ApiError(500, error.message);
     }
 };
