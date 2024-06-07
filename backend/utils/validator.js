@@ -2,7 +2,8 @@
 class Validator {
     // Validate email using regex
     static isValidEmail(email) {
-        return /^[\w.]{2,}@atmecs\.com$/.test(email);
+        // return /^[\w.]{2,}@atmecs\.com$/.test(email);
+        return /^[\w]{2,}@gmail\.com$/.test(email);
     }
 
     // Validate password using regex

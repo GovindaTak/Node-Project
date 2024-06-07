@@ -34,7 +34,9 @@ const userSchema = mongoose.Schema(
             unique: true,
             validate: {
                 validator: function (v) {
-                    return /^[\w.]{2,}@atmecs\.com$/.test(v);
+                    // return /^[\w.]{2,}@atmecs\.com$/.test(v);
+                    return /^[\w]{2,}@gmail\.com$/.test(v);
+
                 },
                 message: props => `${props.value} is not a valid email!`
             }
@@ -74,6 +76,10 @@ const userSchema = mongoose.Schema(
             allowNull: true,
             
         },
+        isVerified : {
+            type : Boolean,
+            default : false,
+        }
 
     },
     {
