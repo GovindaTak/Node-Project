@@ -91,7 +91,13 @@ const login = asyncHandler(async (req, res) => {
 
     // To check if user's email is verified or not
     if (!user.isVerified) {
-             sendVerificationEmail(user).then(()=>{throw new ApiError(403, "Email not verified")}).catch((error)=>{ throw new ApiError(500,'something went wrong to send email')})
+        try {
+            await sendVerificationEmail(user);
+            throw new ApiError(403, "Your Email is not verified. We have sent an email. Check and Verify your mail to login");
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            throw new ApiError(500, 'Something went wrong while sending the verification email.');
+        }
     }
 
     const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
