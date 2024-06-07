@@ -5,15 +5,9 @@ const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
 const { UserRequestDto  } = require('../dto/userRequestDto');
-
 const { verify, sendVerificationEmail } = require('../services/emailService')
-
 const { UserResponseDto  } = require('../dto/userResponseDto')
-// bcrypt
 const bcrypt = require("bcryptjs")
-// jwt
-// const jwt = require("jsonwebtoken")
-// jwt generator calling
 const generateJWT = require("../utils/jwtGenerator");
 const User = require('../models/userModel');
 
