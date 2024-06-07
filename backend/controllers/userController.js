@@ -185,7 +185,6 @@ const getUserById = asyncHandler(async (req, res) => {
 });
 
 
-
 const deleteUserController = asyncHandler(async (req, res, next) => {
     const { empId } = req.params;
 
@@ -199,8 +198,4 @@ const deleteUserController = asyncHandler(async (req, res, next) => {
    
 });
 
-module.exports = { register, login , updateUser,emailVerify,deleteUserController};
-
-   
-
-module.exports = { register, login, updateUser, emailVerify, getUserById };
+module.exports = { register, login , updateUser,emailVerify,deleteUserController,getUserById};
