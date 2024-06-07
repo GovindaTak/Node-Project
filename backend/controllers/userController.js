@@ -1,13 +1,11 @@
-const { registerUser } = require('../services/userService');
-const { findUserByEmail } = require('../services/userService')
-const { findUserByEmpId, modifyUser } = require('../services/userService')
+const { registerUser, findUserByEmail, findUserByEmpId, modifyUser } = require('../services/userService');
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
 const { UserRequestDto  } = require('../dto/userRequestDto');
 
-const { verify } = require('../services/emailService')
+const { verify, sendVerificationEmail } = require('../services/emailService')
 
 const { UserResponseDto  } = require('../dto/userResponseDto')
 // bcrypt
@@ -16,6 +14,8 @@ const bcrypt = require("bcryptjs")
 // const jwt = require("jsonwebtoken")
 // jwt generator calling
 const generateJWT = require("../utils/jwtGenerator");
+const User = require('../models/userModel');
+
 
 
 
@@ -89,7 +89,12 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid credentials");
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // To check if user's email is verified or not
+    if (!user.isVerified) {
+             sendVerificationEmail(user).then(()=>{throw new ApiError(403, "Email not verified")}).catch((error)=>{ throw new ApiError(500,'something went wrong to send email')})
+    }
+
+    const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
 
     if (!isMatch) {
         throw new ApiError(400, "Invalid credentials");
@@ -145,7 +150,30 @@ const updateUser = asyncHandler(async (req, res, next) => {
   
 });
 
-module.exports = { register, login , updateUser};
+// get user by id
+const getUserById = asyncHandler(async (req, res) => {
+    const empId = req.params.empId;
+    const user = await findUserByEmpId(empId);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const userResponse = new UserResponseDto(
+        user.empId,
+        user.email,
+        user.firstName,
+        user.middleName,
+        user.lastName,
+        user.contactNumber,
+        user.department,
+        user.designation,
+        user.image
+    );
+
+    const response = new ApiResponse(200, [{ user: userResponse }], "User fetched successfully");
+    res.status(response.statusCode).json(response);
+});
 
 
-
+module.exports = { register, login, updateUser, emailVerify, getUserById };
