@@ -130,15 +130,16 @@ const updateUser = asyncHandler(async (req, res, next) => {
     UserRequestDto.validate(userRequestData);
         // Update user data using service
         const updatedUser = await modifyUser(userRequestData);
-
+        console.log('***',updateUser);
         // Create response DTO
       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
-
+      console.log('***',user);
         // // Send success response
         // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
 
         //
         const response = new ApiResponse(202, [{user}], "User updated successfully");
+        console.log('***',response);
         console.log("user res",response);
 
         res.status(response.statusCode).json(response);
