@@ -1,4 +1,5 @@
-const { registerUser, findUserByEmail, findUserByEmpId, modifyUser } = require('../services/userService');
+
+const { registerUser, findUserByEmail, findUserByEmpId, modifyUser,deleteUser  } = require('../services/userService');
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
@@ -141,27 +142,29 @@ const updateUser = asyncHandler(async (req, res, next) => {
     UserRequestDto.validate(userRequestData);
         // Update user data using service
         const updatedUser = await modifyUser(userRequestData);
-
+        console.log('***',updateUser);
         // Create response DTO
       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
-
+      console.log('***',user);
         // // Send success response
         // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
 
         //
         const response = new ApiResponse(202, [{user}], "User updated successfully");
+        console.log('***',response);
         console.log("user res",response);
 
         res.status(response.statusCode).json(response);
   
 });
 
+
 // get user by id
 const getUserById = asyncHandler(async (req, res) => {
     const empId = req.params.empId;
     const user = await findUserByEmpId(empId);
-
-    if (!user) {
+  
+   if (!user) {
         throw new ApiError(404, "User not found");
     }
 
@@ -181,5 +184,23 @@ const getUserById = asyncHandler(async (req, res) => {
     res.status(response.statusCode).json(response);
 });
 
+
+
+const deleteUserController = asyncHandler(async (req, res, next) => {
+    const { empId } = req.params;
+
+    if (!empId) {
+        return next(new ApiError(400,[], 'Employee ID is required'));
+    }
+   
+       const updatedUser= await deleteUser(empId);
+       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+        res.json(new ApiResponse(200,[{user}], 'User deleted successfully'));
+   
+});
+
+module.exports = { register, login , updateUser,emailVerify,deleteUserController};
+
+   
 
 module.exports = { register, login, updateUser, emailVerify, getUserById };
