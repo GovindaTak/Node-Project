@@ -144,9 +144,20 @@ const modifyUser = async (userData) => {
     return user;
 };
 
+const deleteUser = async (empId) => {
+    const user = await User.findOneAndDelete({ empId });
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    return user;
+};
+
 module.exports = {
     registerUser,
     findUserByEmail,
     findUserByEmpId,
-    modifyUser
+    modifyUser,
+    deleteUser
 };

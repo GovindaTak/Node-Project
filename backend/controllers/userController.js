@@ -1,4 +1,4 @@
-const { registerUser } = require('../services/userService');
+const { registerUser,deleteUser } = require('../services/userService');
 const { findUserByEmail } = require('../services/userService')
 const { findUserByEmpId, modifyUser } = require('../services/userService')
 const LoginRequestDto = require('../dto/loginRequestDto');
@@ -145,7 +145,21 @@ const updateUser = asyncHandler(async (req, res, next) => {
   
 });
 
-module.exports = { register, login , updateUser};
+
+const deleteUserController = asyncHandler(async (req, res, next) => {
+    const { empId } = req.params;
+
+    if (!empId) {
+        return next(new ApiError(400,[], 'Employee ID is required'));
+    }
+   
+       const updatedUser= await deleteUser(empId);
+       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+        res.json(new ApiResponse(200,[{user}], 'User deleted successfully'));
+   
+});
+
+module.exports = { register, login , updateUser,emailVerify,deleteUserController};
 
 
 
