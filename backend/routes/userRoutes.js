@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { register,updateUser } = require('../controllers/userController')
+
+const { register,updateUser, getAllUsers } = require('../controllers/userController')
+
 const {authenticateUser,authorizeDepartment}=require('../middlewares/authMiddleware')
+
 // login import
 
 const { login, getUserById, deleteUserController } = require('../controllers/userController');
@@ -19,7 +22,7 @@ router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUse
 router.post('/login', login);
 router.get('/user/:empId', getUserById);
 
-router.post('/', register);
+router.route('/').post(register).get(authenticateUser,authorizeDepartment('HR'),getAllUsers);
 
 
 
