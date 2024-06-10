@@ -20,7 +20,7 @@ router.put('/:empId',authenticateUser, updateUser);
 router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUserController);//only admin can delete the user 
 // login
 router.post('/login', login);
-router.get('/user/:empId', getUserById);
+router.get('/user/:empId',authenticateUser, getUserById);
 
 router.route('/').post(register).get(authenticateUser,authorizeDepartment('HR'),getAllUsers);
 
