@@ -17,7 +17,7 @@ const sendVerificationEmail = async (user) => {
         subject : 'Account Verification Link',
         message : `Hello, ${name} Please verify your email by
         clicking this link :
-        http://localhost:5001/api/v1/users/verify-email/${token} `,
+        http://localhost:3000/users/verify/${token}`,
     }
     try{
        
