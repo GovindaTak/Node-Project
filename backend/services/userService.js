@@ -144,9 +144,55 @@ const modifyUser = async (userData) => {
     return user;
 };
 
+
+const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) => {
+    try {
+
+        const filterRegex = new RegExp(filter, 'i');
+
+        const count = await User.countDocuments({
+            $or: [
+                { firstName: filterRegex },
+                { lastName: filterRegex }
+            ]
+        });
+
+        const users = await User.find({
+            $or: [
+                { firstName: filterRegex },
+                { lastName: filterRegex }
+            ]
+        })
+            .limit(pageSize)
+            .skip(pageSize * (pageNo - 1))
+            .sort({ [sortBy]: orderBy })
+            .select('-password'); 
+
+            return {
+                users,
+                pageInfo: {
+                    currentPage: pageNo,
+                    totalPages: Math.ceil(count / pageSize),
+                    pageSize: pageSize,
+                    currentPageCount: users.length,
+                    totalCount: count
+                }
+            };
+
+    
+    } catch (error) {
+        throw new Error('Error fetching users from database');
+    }
+};
+
+
+
+
+
 module.exports = {
     registerUser,
     findUserByEmail,
     findUserByEmpId,
-    modifyUser
+    modifyUser,
+    getAllUsersFromService
 };

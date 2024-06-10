@@ -1,15 +1,17 @@
 const { registerUser } = require('../services/userService');
 const { findUserByEmail } = require('../services/userService')
-const { findUserByEmpId, modifyUser } = require('../services/userService')
+const { findUserByEmpId, modifyUser, getAllUsersFromService } = require('../services/userService')
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
-const { UserRequestDto  } = require('../dto/userRequestDto');
+const { UserRequestDto } = require('../dto/userRequestDto');
+const User = require('../models/userModel');
 
-const { verify } = require('../services/emailService')
+const { verify } = require('../services/emailService');
 
-const { UserResponseDto  } = require('../dto/userResponseDto')
+
+const { UserResponseDto } = require('../dto/userResponseDto')
 // bcrypt
 const bcrypt = require("bcryptjs")
 // jwt
@@ -38,14 +40,14 @@ const register = asyncHandler(async (req, res) => {
     UserRequestDto.validate(userRequestData);
 
     const newUser = await registerUser(userRequestData);
-    
+
 
     if (newUser) {
         const user = new UserResponseDto(newUser.empId, newUser.email, newUser.firstName, newUser.middleName, newUser.lastName, newUser.contactNumber, newUser.department, newUser.designation, newUser.image);
-       
 
-        const response = new ApiResponse(201, [{user}], "User registered successfully");
-       
+
+        const response = new ApiResponse(201, [{ user }], "User registered successfully");
+
 
         res.status(response.statusCode).json(response);
     } else {
@@ -55,13 +57,13 @@ const register = asyncHandler(async (req, res) => {
 });
 
 
-const emailVerify = asyncHandler( async (req,res) => {
-  
+const emailVerify = asyncHandler(async (req, res) => {
+
     const { token } = req.params;
     console.log(token)
     const isVerified = await verify(token);
-    
-    if(isVerified){
+
+    if (isVerified) {
         const response = new ApiResponse(200, [], "Your mail is verified");
         res.status(response.statusCode).json(response);
     } else {
@@ -69,7 +71,7 @@ const emailVerify = asyncHandler( async (req,res) => {
     }
 
 });
- 
+
 // Login controller
 const login = asyncHandler(async (req, res) => {
     const { email, empId, password } = req.body;
@@ -98,7 +100,7 @@ const login = asyncHandler(async (req, res) => {
     const payload = {
         user: {
             id: user.id,
-            role:user.department
+            role: user.department
         },
     };
 
@@ -128,24 +130,38 @@ const updateUser = asyncHandler(async (req, res, next) => {
 
     // Validate the request data
     UserRequestDto.validate(userRequestData);
-        // Update user data using service
-        const updatedUser = await modifyUser(userRequestData);
+    // Update user data using service
+    const updatedUser = await modifyUser(userRequestData);
 
-        // Create response DTO
-      const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+    // Create response DTO
+    const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
 
-        // // Send success response
-        // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
+    // // Send success response
+    // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
 
-        //
-        const response = new ApiResponse(202, [{user}], "User updated successfully");
-        console.log("user res",response);
+    //
+    const response = new ApiResponse(202, [{ user }], "User updated successfully");
+    console.log("user res", response);
 
-        res.status(response.statusCode).json(response);
-  
+    res.status(response.statusCode).json(response);
+
 });
 
-module.exports = { register, login , updateUser};
+
+
+const getAllUsers = asyncHandler(async (req, res) => {
+
+    const pageSize = Number(req.query.pageSize) || 10; 
+    const page = Number(req.query.pageNo) || 1;
+    const sortBy = req.query.sortBy || 'firstName';
+    const orderBy = req.query.orderBy === 'DESC' ? -1 : 1; 
+    const filter = req.query.filter || ''; 
+
+    const response = await getAllUsersFromService(pageSize,page,sortBy,orderBy, filter);
+    res.status(200).json(response);
+});
+
+module.exports = { register, login, updateUser, emailVerify, getAllUsers };
 
 
 
