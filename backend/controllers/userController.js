@@ -1,23 +1,15 @@
-const { registerUser } = require('../services/userService');
-const { findUserByEmail } = require('../services/userService')
-const { findUserByEmpId, modifyUser, getAllUsersFromService } = require('../services/userService')
+const { registerUser, findUserByEmail, findUserByEmpId, modifyUser,deleteUser ,getAllUsersFromService   } = require('../services/userService');
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
-const { UserRequestDto } = require('../dto/userRequestDto');
+const { UserRequestDto  } = require('../dto/userRequestDto');
+const { verify, sendVerificationEmail } = require('../services/emailService')
+const { UserResponseDto  } = require('../dto/userResponseDto')
+const bcrypt = require("bcryptjs")
+const generateJWT = require("../utils/jwtGenerator");
 const User = require('../models/userModel');
 
-const { verify } = require('../services/emailService');
-
-
-const { UserResponseDto } = require('../dto/userResponseDto')
-// bcrypt
-const bcrypt = require("bcryptjs")
-// jwt
-// const jwt = require("jsonwebtoken")
-// jwt generator calling
-const generateJWT = require("../utils/jwtGenerator");
 
 
 
@@ -91,7 +83,18 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid credentials");
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // To check if user's email is verified or not
+    if (!user.isVerified) {
+        try {
+            await sendVerificationEmail(user);
+            throw new ApiError(403, "Your Email is not verified. We have sent an email. Check and Verify your mail to login");
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            throw new ApiError(500, 'Something went wrong while sending the verification email.');
+        }
+    }
+
+    const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
 
     if (!isMatch) {
         throw new ApiError(400, "Invalid credentials");
@@ -130,18 +133,20 @@ const updateUser = asyncHandler(async (req, res, next) => {
 
     // Validate the request data
     UserRequestDto.validate(userRequestData);
-    // Update user data using service
-    const updatedUser = await modifyUser(userRequestData);
 
-    // Create response DTO
-    const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+        // Update user data using service
+        const updatedUser = await modifyUser(userRequestData);
+        console.log('***',updateUser);
+        // Create response DTO
+      const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+      console.log('***',user);
+        // // Send success response
+        // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
 
-    // // Send success response
-    // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
-
-    //
-    const response = new ApiResponse(202, [{ user }], "User updated successfully");
-    console.log("user res", response);
+        //
+        const response = new ApiResponse(202, [{user}], "User updated successfully");
+        console.log('***',response);
+        console.log("user res",response);
 
     res.status(response.statusCode).json(response);
 
@@ -161,7 +166,45 @@ const getAllUsers = asyncHandler(async (req, res) => {
     res.status(200).json(response);
 });
 
-module.exports = { register, login, updateUser, emailVerify, getAllUsers };
 
 
+// get user by id
+const getUserById = asyncHandler(async (req, res) => {
+    const empId = req.params.empId;
+    const user = await findUserByEmpId(empId);
+  
+   if (!user) {
+        throw new ApiError(404, "User not found");
+    }
 
+    const userResponse = new UserResponseDto(
+        user.empId,
+        user.email,
+        user.firstName,
+        user.middleName,
+        user.lastName,
+        user.contactNumber,
+        user.department,
+        user.designation,
+        user.image
+    );
+
+    const response = new ApiResponse(200, [{ user: userResponse }], "User fetched successfully");
+    res.status(response.statusCode).json(response);
+});
+
+
+const deleteUserController = asyncHandler(async (req, res, next) => {
+    const { empId } = req.params;
+
+    if (!empId) {
+        return next(new ApiError(400,[], 'Employee ID is required'));
+    }
+   
+       const updatedUser= await deleteUser(empId);
+       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+        res.json(new ApiResponse(200,[{user}], 'User deleted successfully'));
+   
+});
+
+module.exports = { register, login , updateUser,emailVerify,deleteUserController,getUserById,getAllUsers};

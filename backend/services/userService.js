@@ -124,6 +124,7 @@ const modifyUser = async (userData) => {
     }
 
     // Update user data
+    user.empId=empId;
     user.firstName = firstName;
     user.lastName = lastName;
     user.middleName=middleName;
@@ -135,12 +136,24 @@ const modifyUser = async (userData) => {
 
     // Save updated user data
     try{
-    user = await user.save();
+   const updatedUser = await user.save();
+    console.log('**in service **',updatedUser);
+    return updatedUser;
     }
     catch(error)
     {
         return new ApiError(500, error.message);
     }
+   
+};
+
+const deleteUser = async (empId) => {
+    const user = await User.findOneAndDelete({ empId });
+
+    if (!user) {
+        throw new ApiError(404, 'User not found');
+    }
+
     return user;
 };
 
@@ -194,5 +207,7 @@ module.exports = {
     findUserByEmail,
     findUserByEmpId,
     modifyUser,
-    getAllUsersFromService
+    getAllUsersFromService,
+    deleteUser
+
 };
