@@ -6,8 +6,7 @@ const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
 const { UserRequestDto  } = require('../dto/userRequestDto');
-
-const { verify } = require('../services/emailService')
+const { verify, sendVerificationEmail } = require('../services/emailService')
 const generateJWT = require("../utils/jwtGenerator");
 const { UserResponseDto  } = require('../dto/userResponseDto')
 // bcrypt
@@ -47,11 +46,12 @@ const login = asyncHandler(async (req, res) => {
             await sendVerificationEmail(user);
             throw new ApiError(403, "Your Email is not verified. We have sent an email. Check and Verify your mail to login");
         } catch (error) {
-            console.error('Error sending verification email:', error);
-            throw new ApiError(500, 'Something went wrong while sending the verification email.');
-        }
+            if (error instanceof ApiError) {
+                throw error;
+            }
+            throw new ApiError(500, error.message);
     }
-
+    }
     const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
 
     if (!isMatch) {

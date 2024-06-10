@@ -4,13 +4,12 @@ const User = require('../models/userModel'); // Assuming you have a User model
 
 const authenticateUser = async (req, res, next) => {
     try {
+
+        if(!req.headers.authorization) throw new ApiError(401, 'No token provided');
         // Extract token from headers
         const token = req.headers.authorization.split(' ')[1];
 
-        if (!token) {
-            throw new ApiError(401, 'No token provided');
-        }
-
+       
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -20,7 +19,10 @@ const authenticateUser = async (req, res, next) => {
 
         next();
     } catch (error) {
-        next(new ApiError(401, 'Invalid token'));
+        if (error instanceof ApiError) {
+            next( error);
+        }
+        next( new ApiError(500, error.message));
     }
 };
 
