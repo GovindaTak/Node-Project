@@ -29,7 +29,7 @@ const authorizeDepartment = (department) => (req, res, next) => {
     //     return next(new ApiError(403, 'Forbidden'));
     // }
     if (req.role !== department) {
-        return next(new ApiError(403, 'Forbidden'));
+        return next(new ApiError(403, 'You UnAuthorized to access this resource !!!'));
     }
     next();
 };
