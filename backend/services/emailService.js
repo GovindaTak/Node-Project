@@ -61,4 +61,6 @@ const verify = async (token) => {
 
 }
 
+
+
 module.exports = {sendVerificationEmail,verify};

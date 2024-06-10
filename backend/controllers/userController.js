@@ -1,21 +1,15 @@
-const { registerUser,deleteUser } = require('../services/userService');
-const { findUserByEmail } = require('../services/userService')
-const { findUserByEmpId, modifyUser } = require('../services/userService')
+const { registerUser, findUserByEmail, findUserByEmpId, modifyUser,deleteUser ,getAllUsersFromService   } = require('../services/userService');
 const LoginRequestDto = require('../dto/loginRequestDto');
 const { ApiError } = require('../api/ApiError');
 const { ApiResponse } = require('../api/ApiResponse');
 const asyncHandler = require('../api/asyncHandler')
 const { UserRequestDto  } = require('../dto/userRequestDto');
-
-const { verify } = require('../services/emailService')
-
+const { verify, sendVerificationEmail } = require('../services/emailService')
 const { UserResponseDto  } = require('../dto/userResponseDto')
-// bcrypt
 const bcrypt = require("bcryptjs")
-// jwt
-// const jwt = require("jsonwebtoken")
-// jwt generator calling
 const generateJWT = require("../utils/jwtGenerator");
+const User = require('../models/userModel');
+
 
 
 
@@ -38,14 +32,14 @@ const register = asyncHandler(async (req, res) => {
     UserRequestDto.validate(userRequestData);
 
     const newUser = await registerUser(userRequestData);
-    
+
 
     if (newUser) {
         const user = new UserResponseDto(newUser.empId, newUser.email, newUser.firstName, newUser.middleName, newUser.lastName, newUser.contactNumber, newUser.department, newUser.designation, newUser.image);
-       
 
-        const response = new ApiResponse(201, [{user}], "User registered successfully");
-       
+
+        const response = new ApiResponse(201, [{ user }], "User registered successfully");
+
 
         res.status(response.statusCode).json(response);
     } else {
@@ -55,13 +49,13 @@ const register = asyncHandler(async (req, res) => {
 });
 
 
-const emailVerify = asyncHandler( async (req,res) => {
-  
+const emailVerify = asyncHandler(async (req, res) => {
+
     const { token } = req.params;
     console.log(token)
     const isVerified = await verify(token);
-    
-    if(isVerified){
+
+    if (isVerified) {
         const response = new ApiResponse(200, [], "Your mail is verified");
         res.status(response.statusCode).json(response);
     } else {
@@ -69,7 +63,7 @@ const emailVerify = asyncHandler( async (req,res) => {
     }
 
 });
- 
+
 // Login controller
 const login = asyncHandler(async (req, res) => {
     const { email, empId, password } = req.body;
@@ -89,7 +83,18 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid credentials");
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // To check if user's email is verified or not
+    if (!user.isVerified) {
+        try {
+            await sendVerificationEmail(user);
+            throw new ApiError(403, "Your Email is not verified. We have sent an email. Check and Verify your mail to login");
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            throw new ApiError(500, 'Something went wrong while sending the verification email.');
+        }
+    }
+
+    const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
 
     if (!isMatch) {
         throw new ApiError(400, "Invalid credentials");
@@ -98,7 +103,7 @@ const login = asyncHandler(async (req, res) => {
     const payload = {
         user: {
             id: user.id,
-            role:user.department
+            role: user.department
         },
     };
 
@@ -128,6 +133,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
 
     // Validate the request data
     UserRequestDto.validate(userRequestData);
+
         // Update user data using service
         const updatedUser = await modifyUser(userRequestData);
         console.log('***',updateUser);
@@ -142,8 +148,49 @@ const updateUser = asyncHandler(async (req, res, next) => {
         console.log('***',response);
         console.log("user res",response);
 
-        res.status(response.statusCode).json(response);
+    res.status(response.statusCode).json(response);
+
+});
+
+
+
+const getAllUsers = asyncHandler(async (req, res) => {
+
+    const pageSize = Number(req.query.pageSize) || 10; 
+    const page = Number(req.query.pageNo) || 1;
+    const sortBy = req.query.sortBy || 'firstName';
+    const orderBy = req.query.orderBy === 'DESC' ? -1 : 1; 
+    const filter = req.query.filter || ''; 
+
+    const response = await getAllUsersFromService(pageSize,page,sortBy,orderBy, filter);
+    res.status(200).json(response);
+});
+
+
+
+// get user by id
+const getUserById = asyncHandler(async (req, res) => {
+    const empId = req.params.empId;
+    const user = await findUserByEmpId(empId);
   
+   if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const userResponse = new UserResponseDto(
+        user.empId,
+        user.email,
+        user.firstName,
+        user.middleName,
+        user.lastName,
+        user.contactNumber,
+        user.department,
+        user.designation,
+        user.image
+    );
+
+    const response = new ApiResponse(200, [{ user: userResponse }], "User fetched successfully");
+    res.status(response.statusCode).json(response);
 });
 
 
@@ -160,7 +207,4 @@ const deleteUserController = asyncHandler(async (req, res, next) => {
    
 });
 
-module.exports = { register, login , updateUser,emailVerify,deleteUserController};
-
-
-
+module.exports = { register, login , updateUser,emailVerify,deleteUserController,getUserById,getAllUsers};
