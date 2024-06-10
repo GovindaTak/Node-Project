@@ -7,7 +7,7 @@ const {authenticateUser,authorizeDepartment}=require('../middlewares/authMiddlew
 
 // login import
 
-const { login, getUserById, deleteUserController } = require('../controllers/userController');
+const {  getUserById, deleteUserController } = require('../controllers/userController');
 
 
 
@@ -18,8 +18,8 @@ router.get('/verifyEmail/:token',emailVerify);
 
 router.put('/:empId',authenticateUser, updateUser);
 router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUserController);//only admin can delete the user 
-// login
-router.post('/login', login);
+
+
 router.get('/user/:empId',authenticateUser, getUserById);
 
 router.route('/').post(register).get(authenticateUser,authorizeDepartment('HR'),getAllUsers);

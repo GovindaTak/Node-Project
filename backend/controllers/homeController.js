@@ -8,7 +8,7 @@ const asyncHandler = require('../api/asyncHandler')
 const { UserRequestDto  } = require('../dto/userRequestDto');
 
 const { verify } = require('../services/emailService')
-
+const generateJWT = require("../utils/jwtGenerator");
 const { UserResponseDto  } = require('../dto/userResponseDto')
 // bcrypt
 const bcrypt = require("bcryptjs")
@@ -20,6 +20,59 @@ const {generateRandomPassword}=require('../utils/utilityFunctions')
 
 
 //----------------------------------
+
+
+// Login controller
+const login = asyncHandler(async (req, res) => {
+    const { email, empId, password } = req.body;
+    const loginRequestData = new LoginRequestDto(email, empId, password);
+
+    // Validate the login request data
+    LoginRequestDto.validate(loginRequestData);
+
+    let user;
+    if (email) {
+        user = await findUserByEmail(email);
+    } else if (empId) {
+        user = await findUserByEmpId(empId);
+    }
+
+    if (!user) {
+        throw new ApiError(400, "Invalid credentials");
+    }
+
+    // To check if user's email is verified or not
+    if (!user.isVerified) {
+        try {
+            await sendVerificationEmail(user);
+            throw new ApiError(403, "Your Email is not verified. We have sent an email. Check and Verify your mail to login");
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            throw new ApiError(500, 'Something went wrong while sending the verification email.');
+        }
+    }
+
+    const isMatch = await user.matchPassword(password); // Use the matchPassword method from the User model
+
+    if (!isMatch) {
+        throw new ApiError(400, "Invalid credentials");
+    }
+
+    const payload = {
+        user: {
+            id: user.id,
+            role: user.department
+        },
+    };
+
+    try {
+        const token = await generateJWT(payload);
+        const response = new ApiResponse(200, { token }, "User logged in successfully");
+        res.status(response.statusCode).json(response);
+    } catch (err) {
+        throw new ApiError(500, "Token generation failed");
+    }
+});
 
 const forgetPassword = asyncHandler(async (req, res, next) => {
     const { email, empId } = req.query;
@@ -54,4 +107,4 @@ const forgetPassword = asyncHandler(async (req, res, next) => {
     res.json(new ApiResponse(202, [],'Password reset successfully. Check your email for the new password.'));
 });
 
-module.exports = { forgetPassword };
+module.exports = { forgetPassword ,login};

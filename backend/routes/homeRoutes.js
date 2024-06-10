@@ -2,9 +2,10 @@
 
 const express = require('express');
 const router = express.Router();
-const { forgetPassword } = require('../controllers/homeController');
+const { forgetPassword, login } = require('../controllers/homeController');
 
 // Forget Password API
 router.get('/forgetPassword', forgetPassword);
+router.post('/login', login);
 
 module.exports = router;
