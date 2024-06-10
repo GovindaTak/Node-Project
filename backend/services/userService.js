@@ -160,26 +160,39 @@ const deleteUser = async (empId) => {
 
 const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) => {
     try {
+        
 
+       
         const filterRegex = new RegExp(filter, 'i');
-
+        const filterConditions = [
+          { firstName: filterRegex },
+          { lastName: filterRegex }
+        ];
+    
+       
+        if (/\d/.test(filter)) {
+          filterConditions.push({ empId: filter });
+        }
+    
         const count = await User.countDocuments({
-            $or: [
-                { firstName: filterRegex },
-                { lastName: filterRegex }
-            ]
+          $or: filterConditions
         });
 
-        const users = await User.find({
-            $or: [
-                { firstName: filterRegex },
-                { lastName: filterRegex }
-            ]
-        })
-            .limit(pageSize)
-            .skip(pageSize * (pageNo - 1))
-            .sort({ [sortBy]: orderBy })
-            .select('-password'); 
+
+    
+        let users = await User.find({
+          $or: filterConditions
+        }).limit(pageSize)
+        .skip(pageSize * (pageNo - 1))
+        .sort({ [sortBy]: orderBy })
+        .select('-password'); 
+
+        console.log(users.length)
+        
+        if (users === null || users.length === 0) {
+            throw new ApiError(404, 'Users not found');
+        }
+       
 
             return {
                 users,
@@ -194,7 +207,11 @@ const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) 
 
     
     } catch (error) {
-        throw new Error('Error fetching users from database');
+
+        if (error instanceof ApiError) {
+            throw error;
+        }
+        throw new ApiError(500, error.message);
     }
 };
 

@@ -22,7 +22,7 @@ router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUse
 router.post('/login', login);
 router.get('/user/:empId',authenticateUser, getUserById);
 
-router.route('/').post(register).get(authenticateUser,authorizeDepartment('HR'),getAllUsers);
+router.route('/').post(register).get(authenticateUser,authorizeDepartment('admin'),getAllUsers);
 
 
 
