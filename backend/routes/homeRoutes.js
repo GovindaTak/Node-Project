@@ -8,4 +8,5 @@ const { forgetPassword, login } = require('../controllers/homeController');
 router.get('/forgetPassword', forgetPassword);
 router.post('/login', login);
 
+
 module.exports = router;
