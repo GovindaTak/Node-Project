@@ -6,6 +6,7 @@ const connectDB = require('./db/db.js');
 const userRoutes = require('./routes/userRoutes.js')
 const homeRoutes= require('../backend/routes/homeRoutes.js')
 const adminRoutes= require('../backend/routes/adminRoutes.js')
+const chatRoutes = require('./routes/chatRoutes.js')
 const errorHandler = require('./middlewares/errorHandler.js')
 
 
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use('/api/v1/users' , userRoutes);
 app.use('/api/v1/admin' , adminRoutes);
 app.use('/api/v1/' , homeRoutes);
+app.use('/api/v1/integration' , chatRoutes);
 app.use(errorHandler.errorHandler);
 
 
