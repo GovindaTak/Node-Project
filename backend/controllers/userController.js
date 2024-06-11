@@ -162,4 +162,6 @@ const deleteUserController = asyncHandler(async (req, res, next) => {
    
 });
 
+
+
 module.exports = { register , updateUser,emailVerify,deleteUserController,getUserById,getAllUsers};
