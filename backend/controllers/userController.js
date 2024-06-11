@@ -115,8 +115,10 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
     // const response = await getAllUsersFromService(pageSize,page,sortBy,orderBy, filter);
     // res.status(200).json(response);
+
     const { users, pageInfo } = await getAllUsersFromService(pageSize, page, sortBy, orderBy, filter,searchBy);
  
+
     const response = new ApiResponse(200, { users, pageInfo }, "Users retrieved successfully");
 
     res.status(response.statusCode).json(response);
