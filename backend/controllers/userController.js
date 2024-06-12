@@ -121,11 +121,14 @@ const getAllUsers = asyncHandler(async (req, res) => {
     const sortBy = req.query.sortBy || 'firstName';
     const orderBy = req.query.orderBy === 'DESC' ? -1 : 1; 
     const filter = req.query.filter || ''; 
+    const searchBy = req.query.searchBy || ''; 
 
     // const response = await getAllUsersFromService(pageSize,page,sortBy,orderBy, filter);
     // res.status(200).json(response);
-    const { users, pageInfo } = await getAllUsersFromService(pageSize, page, sortBy, orderBy, filter);
-    console.log("skjcSBHABS", users)
+
+    const { users, pageInfo } = await getAllUsersFromService(pageSize, page, sortBy, orderBy, filter,searchBy);
+ 
+
     const response = new ApiResponse(200, { users, pageInfo }, "Users retrieved successfully");
 
     res.status(response.statusCode).json(response);
@@ -171,5 +174,7 @@ const deleteUserController = asyncHandler(async (req, res, next) => {
         res.json(new ApiResponse(200,[{user}], 'User deleted successfully'));
    
 });
+
+
 
 module.exports = { register , updateUser,emailVerify,deleteUserController,getUserById,getAllUsers};

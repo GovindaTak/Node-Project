@@ -171,11 +171,11 @@ const deleteUser = async (empId) => {
 };
 
 
-const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) => {
+const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter,searchBy) => {
     try {
         
 
-       
+        /*
         const filterRegex = new RegExp(filter, 'i');
         const filterConditions = [
           { firstName: filterRegex },
@@ -185,6 +185,35 @@ const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) 
        
         if (/\d/.test(filter)) {
           filterConditions.push({ empId: filter });
+        }
+        */
+
+        const filterRegex = new RegExp(filter, 'i');
+        let filterConditions;
+
+        switch (searchBy.toLowerCase()) {
+            case 'department':
+                filterConditions = [{ department: filterRegex }];
+                break;
+            case 'designation':
+                filterConditions = [{ designation: filterRegex }];
+                break;
+            case 'empId':
+                if (/\d/.test(filter)) {
+                    filterConditions = [{ empId: filter }];
+                } else {
+                    filterConditions = [{ empId: filterRegex }];
+                }
+                break;
+            default:
+                filterConditions = [
+                    { firstName: filterRegex },
+                    { lastName: filterRegex }
+                ];
+                if (/\d/.test(filter)) {
+                    filterConditions.push({ empId: filter });
+                }
+                break;
         }
     
         const count = await User.countDocuments({
@@ -200,7 +229,6 @@ const getAllUsersFromService = async (pageSize, pageNo, sortBy, orderBy,filter) 
         .sort({ [sortBy]: orderBy })
         .select('-password'); 
 
-        console.log(users.length)
         
         if (users === null || users.length === 0) {
             throw new ApiError(404, 'Users not found');
