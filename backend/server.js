@@ -10,6 +10,7 @@ const chatRoutes = require('./routes/chatRoutes.js')
 const errorHandler = require('./middlewares/errorHandler.js')
 
 
+
 connectDB();
 
 const port = process.env.PORT;

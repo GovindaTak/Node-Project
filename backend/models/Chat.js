@@ -6,7 +6,12 @@ const querySchema = require('./Query');
 const chatSchema = new mongoose.Schema({
     empId: { type: String, required: true },
     email: { type: String, required: true },
-    Files: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Files' }],
+    files: [
+        { type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: 'Files',
+        }
+    ],
     queries: [querySchema],
 }, { timestamps: true });
 
