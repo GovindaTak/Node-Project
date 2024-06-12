@@ -1,21 +1,21 @@
 
-const asyncHandler = require('../utils/asyncHandler');
+const asyncHandler = require('../api/asyncHandler');
 
 const Chat = require('../models/Chat');
-const { uploadFilesToPythonAPI } = require('../services/chatService');
+const { uploadFilesToPythonAPI,handleQueryService } = require('../services/chatService');
 const { ApiResponse } = require('../api/ApiResponse');
 const { ApiError } = require('../api/ApiError')
 const axios = require('axios');
 
 const handleQuery = asyncHandler(async (req, res, next) => {
-    const { empId, email, chatId, queryText, responseText } = req.body;
+    const {  chatId, queryText } = req.body;
     try {
-        const result = await handleQueryService(empId, email, chatId, queryText, responseText);
-        res.json(new ApiResponse(true, 'Query handled successfully', result));
+        const result = await handleQueryService(req.userInfo.empId, req.role, chatId, queryText,);
+        res.json(new ApiResponse(200,[result] ,'Query handled successfully', result));
     } catch (error) {
         if(error instanceof ApiError)
             next(error);
-        next(new ApiError(500, 'Query handling failed'));
+        next(new ApiError(500, error.message));
     }
 });
 
