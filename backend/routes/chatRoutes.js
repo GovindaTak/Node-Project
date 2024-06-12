@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const { uploadMultiple,handleQuery } = require('../controllers/chatController');
-
+const {authenticateUser,authorizeDepartment}=require('../middlewares/authMiddleware')
 
 const router = express.Router();
 
@@ -18,6 +18,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 router.post('/upload-multiple', upload.array('pdfs', 3), uploadMultiple);
-router.post('/handleQuery', handleQuery);
+router.post('/handleQuery',authenticateUser, handleQuery);
 
 module.exports = router;
