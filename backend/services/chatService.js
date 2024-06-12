@@ -32,6 +32,7 @@ console.log(response.data.output)
       const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output);
      
       const chat = await Chat.findById(requestQuery.chatId);
+      if(chat.queries.length==0){chat.chatName=queryResponse.queryText;}
       chat.queries.push(queryResponse);
     await chat.save();
    // return response.data;
