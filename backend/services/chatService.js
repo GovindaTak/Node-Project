@@ -29,13 +29,15 @@ try {
     console.log(requestQuery.queryText);
     const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText});
 console.log(response.data.output)
-      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output);
-     
+    
       const chat = await Chat.findById(requestQuery.chatId);
+      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output,chat.chatName);
+     
       if(chat.queries.length==0){chat.chatName=queryResponse.queryText;}
       chat.queries.push(queryResponse);
     await chat.save();
    // return response.data;
+   queryResponse.chatName=chat.chatName;
    return queryResponse;
   } catch (error) {
     // throw new ApiError(500, error.response?.data?.message || 'Internal Server Error!!!!');
