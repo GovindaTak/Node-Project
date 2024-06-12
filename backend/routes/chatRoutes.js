@@ -17,7 +17,7 @@ router.post('/upload-multiple', authenticateUser, upload.array('pdfs', 3), uploa
 
 
 
-router.post('/handleQuery',authenticateUser, handleQuery);
+router.post('/query_handler',authenticateUser, handleQuery);
 
 
 module.exports = router;
