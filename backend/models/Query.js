@@ -9,4 +9,5 @@ const querySchema = new mongoose.Schema({
     time: { type: String, default: () => new Date().toLocaleTimeString(), required: true }
 });
 
+
 module.exports = querySchema;

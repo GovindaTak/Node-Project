@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
 const { ApiError } = require('../api/ApiError');
+const Query = require('../models/Query')
 
 
 
@@ -16,22 +17,22 @@ const Files = require('../models/Files');
 
 
 const queryRequestDto = require('../dto/queryRequestDto');
-const { Query } = require('mongoose');
+const queryResponseDto = require('../dto/queryResponseDto');
+
 
 const handleQueryService = async (empId, role, chatId, queryText) => {
 
-      const requestQuery= queryRequestDto(chatId,queryText);
+      const requestQuery=new queryRequestDto(chatId,queryText);
       queryRequestDto.validate(requestQuery,empId,role);
 
 try {
-    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": {
-        "input": query.queryText
-      }});
-
-      const queryResponse=queryRequestDto(requestQuery.chatId,requestQuery.queryText,response.data.output.output);
-      const newQuery=Query(queryResponse.queryText,queryResponse.responseText);
+    console.log(requestQuery.queryText);
+    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText});
+console.log(response.data.output)
+      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output);
+     
       const chat = await Chat.findById(requestQuery.chatId);
-      chat.queries.push(newQuery);
+      chat.queries.push(queryResponse);
     await chat.save();
    // return response.data;
    return queryResponse;
