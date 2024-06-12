@@ -1,6 +1,7 @@
 // UserResponseDto.js
 class UserResponseDto {
-    constructor(empId, email, firstName, middleName, lastName, contactNumber, department, designation, image) {
+    constructor(id,empId, email, firstName, middleName, lastName, contactNumber, department, designation, image) {
+        this.id=id;
         this.empId = empId;
         this.email = email;
         this.firstName = firstName;
