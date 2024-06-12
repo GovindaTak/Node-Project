@@ -1,8 +1,29 @@
-const { uploadFilesToPythonAPI, uploadPdfsService } = require('../services/chatService');
+
+const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService } = require('../services/chatService');
+
 const asyncHandler = require('../api/asyncHandler');
+
+const Chat = require('../models/Chat');
+
 const { ApiResponse } = require('../api/ApiResponse');
 const { ApiError } = require('../api/ApiError')
 const axios = require('axios');
+
+const handleQuery = asyncHandler(async (req, res, next) => {
+    const {  chatId, queryText } = req.body;
+    try {
+        const result = await handleQueryService(req.userInfo.empId, req.role, chatId, queryText,);
+        res.json(new ApiResponse(200,[result] ,'Query handled successfully', result));
+    } catch (error) {
+        if(error instanceof ApiError)
+            next(error);
+        next(new ApiError(500, error.message));
+    }
+});
+
+
+
+
 
 
 const uploadMultiple = asyncHandler(async (req, res) => {
@@ -56,5 +77,7 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 
 module.exports = {
   uploadMultiple,
+  handleQuery
   
 };
+
