@@ -14,7 +14,10 @@ const authenticateUser = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Attach user object to request for further middleware or route handlers
-      //  req.user = await User.findById(decoded.empId);
+        console.log(decoded.user.id);
+        req.userInfo = await User.findById(decoded.user.id);
+        console.log("*********", req.userInfo);
+        console.log(req.userInfo);
         req.role= decoded.user.role;
 
         next();

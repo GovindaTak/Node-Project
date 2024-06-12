@@ -3,6 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
 const { ApiError } = require('../api/ApiError');
+const cloudinary = require('../config/cloudinary');
+const Chat = require('../models/Chat');
+const Files = require('../models/Files');
+
+
+
+
+
+
 
 const uploadFilesToPythonAPI = async (files) => {
   const form = new FormData();
@@ -11,11 +20,14 @@ const uploadFilesToPythonAPI = async (files) => {
   });
 
   try {
-    const response = await axios.post('http://55.55.54.128:5002/api/v1/upload-files', form, {  
+    const response = await axios.post(`${process.env.PYTHON_API}/upload-files`, form, {  
       headers: {
         ...form.getHeaders()
       }
     });
+
+    
+  
     return response.data;
 
   } catch (error) {
@@ -32,6 +44,78 @@ const uploadFilesToPythonAPI = async (files) => {
 
 
 
+
+const uploadPdfsService = async (empId, email, files) => {
+  console.log("Files in Service:", files);
+
+  if (!files || files.length === 0) {
+      throw new ApiError(400, 'No files uploaded');
+  }
+
+  const uploadPromises = files.map(async file => {
+      const filePath = path.join(__dirname, '../uploads', file.filename);
+
+      // Assuming the file has already been saved to the local file system
+      const cloudinaryResponse = await uploadOnCloudinary(filePath);
+
+      if (!cloudinaryResponse) {
+          throw new ApiError(500, 'Error uploading file to Cloudinary');
+      }
+
+      return {
+          filename: file.originalname,
+          fileUrl: cloudinaryResponse.secure_url,
+          uploadDate: new Date(),
+          uploadTime: new Date().toLocaleTimeString(),
+          fileExtension: file.mimetype.split('/')[1]
+      };
+  });
+
+  const uploadedFiles = await Promise.all(uploadPromises);
+
+  const newFiles = new Files({
+      empId,
+      email,
+      files: uploadedFiles
+  });
+
+  const savedFiles = await newFiles.save();
+
+  console.log("file id ---->",savedFiles._id)
+  const newChat = new Chat({
+      empId,
+      email,
+      files: savedFiles._id,
+      queries: []
+  });
+
+  await newChat.save();
+
+  return newChat;
+};
+
+
+const uploadOnCloudinary = async (localFilePath) => {
+  try {
+      if (!localFilePath) return null;
+      // Upload the file to Cloudinary
+      const response = await cloudinary.uploader.upload(localFilePath, {
+          resource_type: "auto",
+          timeout: 60000
+      });
+      // File has been uploaded successfully
+      console.log("File is uploaded on Cloudinary: ", response.url);
+      // fs.unlinkSync(localFilePath);
+      return response;
+  } catch (error) {
+      console.error("Cloudinary Upload Error:", error);
+      fs.unlinkSync(localFilePath); // Remove the locally saved temporary file as the upload operation failed
+      return null;
+  }
+};
+
+
 module.exports = {
-  uploadFilesToPythonAPI
+  uploadFilesToPythonAPI,
+  uploadPdfsService
 };
