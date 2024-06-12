@@ -2,7 +2,7 @@ const User = require('../models/userModel');
 
 const { ApiError } = require('../api/ApiError');
 const {sendVerificationEmail} = require('./emailService');
-
+const cloudinary = require('cloudinary').v2;
 
 
 
@@ -63,6 +63,19 @@ const registerUser = async (userData) => {
         }
       
         throw new ApiError(500, error.message);
+    }
+};
+
+const uploadImage = async (filePath) => {
+    try {
+        const result = await cloudinary.uploader.upload(filePath, {
+            folder: 'users',
+            width: 300,
+            crop: 'scale',
+        });
+        return result.secure_url;
+    } catch (error) {
+        throw new Error('Image upload failed');
     }
 };
 
@@ -253,6 +266,6 @@ module.exports = {
     findUserByEmpId,
     modifyUser,
     getAllUsersFromService,
-    deleteUser
-
+    deleteUser,
+    uploadImage
 };

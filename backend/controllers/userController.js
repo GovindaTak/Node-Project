@@ -9,12 +9,22 @@ const { UserResponseDto  } = require('../dto/userResponseDto')
 const bcrypt = require("bcryptjs")
 const generateJWT = require("../utils/jwtGenerator");
 const User = require('../models/userModel');
+const cloudinary = require('../utils/cloudinary');
 
 
 
 
 //empId, firstName, middleName, lastName, contactNumber, department, designation, image, email, password
 const register = asyncHandler(async (req, res) => {
+    let imageUrl = '';
+    console.log(req.file);
+    if (req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'profile_pictures'
+        });
+        imageUrl = result.secure_url;
+    }
+
     const userRequestData = new UserRequestDto(
         req.body.empId,
         req.body.firstName,
@@ -23,7 +33,7 @@ const register = asyncHandler(async (req, res) => {
         req.body.contactNumber,
         req.body.department,
         req.body.designation,
-        req.body.image,
+        imageUrl,
         req.body.email,
         req.body.password
     );
