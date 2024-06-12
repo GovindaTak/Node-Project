@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const upload = require('../middlewares/upload')
 
 const { register,updateUser, getAllUsers } = require('../controllers/userController')
 
@@ -22,9 +23,10 @@ router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUse
 
 router.get('/user/:empId',authenticateUser, getUserById);
 
-router.route('/').post(register).get(authenticateUser,authorizeDepartment('admin'),getAllUsers);
-
-
+// router.route('/').post(register).get(authenticateUser,authorizeDepartment('admin'),getAllUsers);
+// router.post('/register', upload.single('image'), register);
+router.route('/').post(upload.single('image'), register).get(authenticateUser, authorizeDepartment('admin'), getAllUsers);
+router.post('/register', upload.single('image'), register);
 
 
 module.exports = router;
