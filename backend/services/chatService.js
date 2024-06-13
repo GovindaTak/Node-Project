@@ -28,6 +28,9 @@ const handleQueryService = async (empId, role, chatId, queryText) => {
 try {
     console.log(requestQuery.queryText);
     const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText});
+
+
+     
 console.log(response.data.output)
     
       const chat = await Chat.findById(requestQuery.chatId);
@@ -65,15 +68,17 @@ const uploadFilesToPythonAPI = async (files) => {
       }
     });
 
-    
+    deleteLocalFiles(files);
   
     return response.data;
 
   } catch (error) {
     // throw new ApiError(500, error.response?.data?.message || 'Internal Server Error!!!!');
+    deleteLocalFiles(files);
     if (error instanceof ApiError) {
       throw error;
     }
+
     console.log("**************",error)
     throw new ApiError(500, error.response?.data?.message || 'Internal Server Error!!!!');
   }
@@ -152,6 +157,20 @@ const uploadOnCloudinary = async (localFilePath) => {
       return null;
   }
 };
+
+const deleteLocalFiles = (files) => {
+  files.forEach(file => {
+    const filePath = path.join(__dirname, '../', file.path);
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.error(`Error deleting file: ${filePath}`, err);
+      } else {
+        console.log(`Successfully deleted file: ${filePath}`);
+      }
+    });
+  });
+};
+
 
 
 module.exports = {

@@ -15,7 +15,7 @@ const {  getUserById, deleteUserController } = require('../controllers/userContr
 const { emailVerify } = require('../controllers/userController')
 
 
-router.get('/verifyEmail/:token',emailVerify);
+router.get('/verify/:token',emailVerify);
 
 router.put('/:empId',authenticateUser, updateUser);
 router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUserController);//only admin can delete the user 

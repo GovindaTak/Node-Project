@@ -1,5 +1,5 @@
 const User = require('../models/userModel');
-
+const { v4: uuidv4 } = require('uuid');
 const { ApiError } = require('../api/ApiError');
 const {sendVerificationEmail} = require('./emailService');
 const cloudinary = require('cloudinary').v2;
