@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 // Creating User(employee) schema
 const userSchema = mongoose.Schema(
     {
-
+        // userId: { type: String, default: uuidv4, unique: true },
         empId: {
             type: Number,
             required: true,

@@ -24,34 +24,67 @@ const handleQuery = asyncHandler(async (req, res, next) => {
 
 
 
-
-
 const uploadMultiple = asyncHandler(async (req, res) => {
   try {
+    console.log("files in controller", req.files);
 
     const user = req.userInfo;
-    const newChat = await uploadPdfsService(user.empId, user.email, req.files);
+   
 
-    if(newChat){
-     const chatId = newChat._id;
+    // Call the Python API concurrently
+    const pythonApiResponsePromise = uploadFilesToPythonAPI(req.files);
 
-      const response = await uploadFilesToPythonAPI(req.files);
+    const uploadFilesPromise = uploadPdfsService(user.empId, user.email, req.files);
+
+    const [newChat, pythonApiResponse] = await Promise.all([uploadFilesPromise, pythonApiResponsePromise]);
+
+    if (newChat) {
+      const chatId = newChat._id;
       const data = {
-        response,
+        response: pythonApiResponse,
         chatId
-      }
+      };
       const apiResponse = new ApiResponse(200, data, "Files uploaded successfully");
       return res.status(apiResponse.statusCode).json(apiResponse);
-
     }
-    return res.status(500).send("Error occurred during upload.");
 
-   
+    return res.status(500).send("Error occurred during upload.");
   } catch (error) {
     console.error("Upload error:", error);
     res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
   }
 });
+
+// const uploadMultiple = asyncHandler(async (req, res) => {
+//   try {
+
+    
+
+//     console.log("files in controller",req.files)
+
+//     const user = req.userInfo;
+//     const newChat = await uploadPdfsService(user.empId, user.email, req.files);
+
+//     if(newChat){
+//      const chatId = newChat._id;
+
+//       const response = await uploadFilesToPythonAPI(req.files);
+//       const data = {
+//         response,
+//         chatId
+//       }
+//       const apiResponse = new ApiResponse(200, data, "Files uploaded successfully");
+//       return res.status(apiResponse.statusCode).json(apiResponse);
+
+//     }
+//     return res.status(500).send("Error occurred during upload.");
+
+   
+//   } catch (error) {
+//     console.error("Upload error:", error);
+//     res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
+//   }
+// });
 
 
 
@@ -77,7 +110,8 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 
 module.exports = {
   uploadMultiple,
-  handleQuery
+  handleQuery,
+  
   
 };
 

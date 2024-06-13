@@ -16,7 +16,6 @@ const router = express.Router();
 router.post('/upload-multiple', authenticateUser, upload.array('pdfs', 3), uploadMultiple);
 
 
-
 router.post('/query_handler',authenticateUser, handleQuery);
 
 
