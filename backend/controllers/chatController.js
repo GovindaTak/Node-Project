@@ -40,9 +40,11 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 
     if (newChat) {
       const chatId = newChat._id;
+      const chatName = newChat.chatName;
       const data = {
         response: pythonApiResponse,
-        chatId
+        chatId,
+       chatName
       };
       const apiResponse = new ApiResponse(200, data, "Files uploaded successfully");
       return res.status(apiResponse.statusCode).json(apiResponse);
