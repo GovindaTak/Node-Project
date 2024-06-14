@@ -28,4 +28,4 @@ app.use(errorHandler.errorHandler);
 
 
 
-app.listen(port, "55.55.55.230", () => console.log(`Server running in port ${port}`))
+app.listen(port, () => console.log(`Server running in port ${port}`))

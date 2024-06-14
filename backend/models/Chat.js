@@ -1,5 +1,3 @@
-// models/Chat.js
-
 const mongoose = require('mongoose');
 const querySchema = require('./Query');
 
