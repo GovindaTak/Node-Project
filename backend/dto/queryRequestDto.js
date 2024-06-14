@@ -7,10 +7,11 @@ class queryRequestDto {
       this.queryText=queryText
     }
 
-    static validate(queryData,empId,role){
+    static async validate(queryData,empId,role){
         const { chatId } = queryData;
+    
 
-     const chat =  Chat.findById(chatId);
+     const chat =  await Chat.findById(chatId);
      if (!chat) {
         throw new ApiError(404, 'Chat not found');
     }

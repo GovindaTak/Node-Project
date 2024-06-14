@@ -1,5 +1,5 @@
 
-const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService } = require('../services/chatService');
+const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, deleteLocalFiles, deleteChatService } = require('../services/chatService');
 
 const asyncHandler = require('../api/asyncHandler');
 
@@ -46,7 +46,9 @@ const uploadMultiple = asyncHandler(async (req, res) => {
         chatId,
        chatName
       };
+      deleteLocalFiles(req.files);
       const apiResponse = new ApiResponse(200, data, "Files uploaded successfully");
+      console.log("sending response to frontend")
       return res.status(apiResponse.statusCode).json(apiResponse);
     }
 
@@ -56,6 +58,22 @@ const uploadMultiple = asyncHandler(async (req, res) => {
     res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
   }
 });
+
+
+const deleteChat = asyncHandler(async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const empId = req.userInfo.empId;
+    const role = req.role;
+    const result = await deleteChatService(chatId, empId, role);
+    const apiResponse = new ApiResponse(200, {}, result.message);
+    res.status(apiResponse.statusCode).json(apiResponse);
+  } catch (error) {
+    console.error("Delete chat error:", error);
+    res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
+  }
+});
+
 
 // const uploadMultiple = asyncHandler(async (req, res) => {
 //   try {
@@ -113,6 +131,7 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 module.exports = {
   uploadMultiple,
   handleQuery,
+  deleteChat
   
   
 };

@@ -1,6 +1,7 @@
-
+const mongoose = require('mongoose');
 const cloudinary = require('../config/cloudinary');
 const Chat = require('../models/Chat');
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -68,8 +69,8 @@ const uploadFilesToPythonAPI = async (files) => {
       }
     });
 
-    deleteLocalFiles(files);
-  
+    //deleteLocalFiles(files);
+    console.log("response from python api --->",response.data);
     return response.data;
 
   } catch (error) {
@@ -105,7 +106,7 @@ const uploadPdfsService = async (empId, email, files) => {
       if (!cloudinaryResponse) {
           throw new ApiError(500, 'Error uploading file to Cloudinary');
       }
-
+     // deleteLocalFiles(files);
       return {
           filename: file.originalname,
           fileUrl: cloudinaryResponse.secure_url,
@@ -142,23 +143,23 @@ const uploadPdfsService = async (empId, email, files) => {
 const uploadOnCloudinary = async (localFilePath) => {
   try {
       if (!localFilePath) return null;
-      // Upload the file to Cloudinary
+      
       const response = await cloudinary.uploader.upload(localFilePath, {
           resource_type: "auto",
           timeout: 60000
       });
-      // File has been uploaded successfully
+     
       console.log("File is uploaded on Cloudinary: ", response.url);
       // fs.unlinkSync(localFilePath);
       return response;
   } catch (error) {
       console.error("Cloudinary Upload Error:", error);
-      fs.unlinkSync(localFilePath); // Remove the locally saved temporary file as the upload operation failed
+      fs.unlinkSync(localFilePath); 
       return null;
   }
 };
 
-const deleteLocalFiles = (files) => {
+const deleteLocalFiles = async (files) => {
   files.forEach(file => {
     const filePath = path.join(__dirname, '../', file.path);
     fs.unlink(filePath, (err) => {
@@ -173,12 +174,53 @@ const deleteLocalFiles = (files) => {
 
 
 
+
+const deleteChatService = async (chatId, empId, role) => {
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    throw new ApiError(400, 'Invalid chat ID');
+  }
+
+  const chat = await Chat.findById(chatId).populate('files');
+  console.log("chat empId-",chat.empId ,"users empId-", empId);
+  const emplId = chat.empId;
+ 
+  if (!chat) {
+    throw new ApiError(404, 'Chat not found');
+  }
+  if(emplId != empId && role != 'admin'){
+    throw new ApiError(403, 'You are unauthorized to delete');
+  }
+
+ 
+  const fileDeletionPromises = chat.files.map(file => {
+    return file.files.map(fileDetail => {
+      const publicId = fileDetail.fileUrl.split('/').pop().split('.')[0];
+      return cloudinary.uploader.destroy(publicId);
+    });
+  }).flat();
+
+  await Promise.all(fileDeletionPromises);
+
+ 
+ await Files.deleteMany({ _id: { $in: chat.files } });
+
+  
+   await Chat.deleteOne({ _id: chatId });
+
+  return { message: 'Chat and associated files deleted successfully' };
+};
+
+
+
+
 module.exports = {
   uploadFilesToPythonAPI,
 
   uploadPdfsService,
 
-  handleQueryService
+  handleQueryService,
+  deleteLocalFiles,
+  deleteChatService
 
 };
 
