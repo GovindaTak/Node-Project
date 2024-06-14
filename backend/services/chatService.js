@@ -19,12 +19,14 @@ const Files = require('../models/Files');
 const queryRequestDto = require('../dto/queryRequestDto');
 const queryResponseDto = require('../dto/queryResponseDto');
 const { validateChat } = require('../utils/validator');
+const Validator = require('../utils/validator');
+const queryHistoryResponseDto = require('../dto/queryHistoryResponseDto');
 
 
 const handleQueryService = async (empId, role, chatId, queryText) => {
 
       const requestQuery=new queryRequestDto(chatId,queryText);
-      validateChat(chatId,empId,role);
+     await validateChat(chatId,empId,role);
 
 try {
     console.log(requestQuery.queryText);
@@ -175,7 +177,13 @@ const deleteLocalFiles = (files) => {
 
 const retrieveQueryHistory= async (empId, role, chatId)=>{
 
-    queryRequestDto.validate(chatId,empId,role);
+  await Validator.validateChat(chatId,empId,role);
+
+  const chat=await Chat.findById(chatId)
+
+  const responseDto=new queryHistoryResponseDto(chat);
+
+    return responseDto;
 
 }
 
@@ -185,7 +193,8 @@ module.exports = {
 
   uploadPdfsService,
 
-  handleQueryService
+  handleQueryService,
+  retrieveQueryHistory
 
 };
 

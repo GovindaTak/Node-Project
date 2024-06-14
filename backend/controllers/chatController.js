@@ -1,5 +1,5 @@
 
-const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService } = require('../services/chatService');
+const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory } = require('../services/chatService');
 
 const asyncHandler = require('../api/asyncHandler');
 
@@ -55,6 +55,15 @@ const uploadMultiple = asyncHandler(async (req, res) => {
     console.error("Upload error:", error);
     res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
   }
+});
+
+
+const queryHistoryHandler= asyncHandler(async(req,res)=>{
+    const {chatId}=req.params
+
+    const queryHistory=await retrieveQueryHistory(req.userInfo.empId,req.role,chatId);
+    const response= new ApiResponse(200,[queryHistory],"chat queries successfully retrieved !!");
+    return res.status(200).json(response);
 });
 
 // const uploadMultiple = asyncHandler(async (req, res) => {
@@ -113,7 +122,7 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 module.exports = {
   uploadMultiple,
   handleQuery,
-  
+  queryHistoryHandler
   
 };
 

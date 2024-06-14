@@ -1,3 +1,5 @@
+const Chat = require("../models/Chat");
+
 // validator.js
 class Validator {
     // Validate email using regex
