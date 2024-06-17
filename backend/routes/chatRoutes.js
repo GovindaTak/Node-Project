@@ -7,7 +7,7 @@ const { upload } = require('../middlewares/multerMiddleware')
 
 
 
-const { uploadMultiple,handleQuery, queryHistoryHandler,deleteChat } = require('../controllers/chatController');
+const { uploadMultiple,handleQuery, queryHistoryHandler,deleteChat , deleteQueryFromChat} = require('../controllers/chatController');
 
 
 const {authenticateUser,authorizeDepartment}=require('../middlewares/authMiddleware')
@@ -26,6 +26,8 @@ router.delete('/delete-chat/:chatId', authenticateUser, deleteChat);
 
 
 router.get(`/chat_history/:chatId`,authenticateUser, queryHistoryHandler);
+
+router.delete('/chats/:chatId/queries/:queryId', authenticateUser, deleteQueryFromChat);
 
 
 module.exports = router;
