@@ -1,4 +1,5 @@
 const Chat = require("../models/Chat");
+const { ApiError } = require('../api/ApiError');
 
 // validator.js
 class Validator {
@@ -22,7 +23,7 @@ class Validator {
            throw new ApiError(404, 'Chat not found');
        }
        
-       
+       console.log(chat.empId);
        if(chat.empId!=empId)
            {
               

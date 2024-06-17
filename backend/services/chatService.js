@@ -228,6 +228,27 @@ const deleteChatService = async (chatId, empId, role) => {
 
 
 
+const deleteQueryFromChatService = async (chatId, queryId) => {
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) {
+    throw new ApiError(404, 'Chat not found');
+  }
+
+  const queryIndex = chat.queries.findIndex(query => query._id.toString() === queryId);
+
+  if (queryIndex === -1) {
+    throw new ApiError(404, 'Query not found in chat');
+  }
+
+  chat.queries.splice(queryIndex, 1);
+  await chat.save();
+
+  return chat;
+};
+
+
+
 module.exports = {
   uploadFilesToPythonAPI,
 
@@ -238,7 +259,8 @@ module.exports = {
   deleteLocalFiles,
   deleteChatService,
 
-  retrieveQueryHistory
+  retrieveQueryHistory,
+  deleteQueryFromChatService
 
 
 };

@@ -1,5 +1,5 @@
 
-const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory,deleteLocalFiles, deleteChatService } = require('../services/chatService');
+const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory,deleteLocalFiles, deleteChatService, deleteQueryFromChatService } = require('../services/chatService');
 
 
 const asyncHandler = require('../api/asyncHandler');
@@ -88,6 +88,17 @@ const queryHistoryHandler= asyncHandler(async(req,res)=>{
 });
 
 
+
+const deleteQueryFromChat = asyncHandler(async (req, res) => {
+  const { chatId, queryId } = req.params;
+
+  const updatedChat = await deleteQueryFromChatService(chatId, queryId);
+
+  const apiResponse = new ApiResponse(200, updatedChat, "Query deleted successfully");
+  res.status(apiResponse.statusCode).json(apiResponse);
+});
+
+
 // const uploadMultiple = asyncHandler(async (req, res) => {
 //   try {
 
@@ -148,7 +159,8 @@ module.exports = {
   deleteChat,
   
 
-  queryHistoryHandler
+  queryHistoryHandler,
+  deleteQueryFromChat
 
   
 };
