@@ -7,7 +7,6 @@ class queryRequestDto {
       this.queryText=queryText
     }
 
-   
 }
 
 module.exports = queryRequestDto;

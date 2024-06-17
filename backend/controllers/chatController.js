@@ -1,5 +1,6 @@
 
-const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory } = require('../services/chatService');
+const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory,deleteLocalFiles, deleteChatService } = require('../services/chatService');
+
 
 const asyncHandler = require('../api/asyncHandler');
 
@@ -46,7 +47,9 @@ const uploadMultiple = asyncHandler(async (req, res) => {
         chatId,
        chatName
       };
+      deleteLocalFiles(req.files);
       const apiResponse = new ApiResponse(200, data, "Files uploaded successfully");
+      console.log("sending response to frontend")
       return res.status(apiResponse.statusCode).json(apiResponse);
     }
 
@@ -58,6 +61,24 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 });
 
 
+
+const deleteChat = asyncHandler(async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const empId = req.userInfo.empId;
+    const role = req.role;
+    const result = await deleteChatService(chatId, empId, role);
+    const apiResponse = new ApiResponse(200, {}, result.message);
+    res.status(apiResponse.statusCode).json(apiResponse);
+  } catch (error) {
+    console.error("Delete chat error:", error);
+    if(error instanceof ApiError)
+      next(error)
+    next(new ApiError(500,error.message));
+  }
+});
+
+
 const queryHistoryHandler= asyncHandler(async(req,res)=>{
     const {chatId}=req.params
 
@@ -65,6 +86,7 @@ const queryHistoryHandler= asyncHandler(async(req,res)=>{
     const response= new ApiResponse(200,[queryHistory],"chat queries successfully retrieved !!");
     return res.status(200).json(response);
 });
+
 
 // const uploadMultiple = asyncHandler(async (req, res) => {
 //   try {
@@ -122,7 +144,12 @@ const queryHistoryHandler= asyncHandler(async(req,res)=>{
 module.exports = {
   uploadMultiple,
   handleQuery,
+
+  deleteChat,
+  
+
   queryHistoryHandler
+
   
 };
 
