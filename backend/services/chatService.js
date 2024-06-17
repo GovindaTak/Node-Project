@@ -19,23 +19,26 @@ const Files = require('../models/Files');
 
 const queryRequestDto = require('../dto/queryRequestDto');
 const queryResponseDto = require('../dto/queryResponseDto');
+const { validateChat } = require('../utils/validator');
+const Validator = require('../utils/validator');
+const queryHistoryResponseDto = require('../dto/queryHistoryResponseDto');
 
 
 const handleQueryService = async (empId, role, chatId, queryText) => {
 
       const requestQuery=new queryRequestDto(chatId,queryText);
-      queryRequestDto.validate(requestQuery,empId,role);
+     await validateChat(chatId,empId,role);
 
 try {
     console.log(requestQuery.queryText);
-    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText});
+    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input":{"input": requestQuery.queryText}});
 
 
      
 console.log(response.data.output)
     
       const chat = await Chat.findById(requestQuery.chatId);
-      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output,chat.chatName);
+      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output.output,chat.chatName);
      
       if(chat.queries.length==0){chat.chatName=queryResponse.queryText;}
       chat.queries.push(queryResponse);
@@ -173,6 +176,18 @@ const deleteLocalFiles = async (files) => {
 };
 
 
+const retrieveQueryHistory= async (empId, role, chatId)=>{
+
+  await Validator.validateChat(chatId,empId,role);
+
+  const chat=await Chat.findById(chatId)
+
+  const responseDto=new queryHistoryResponseDto(chat);
+
+    return responseDto;
+
+}
+
 
 
 const deleteChatService = async (chatId, empId, role) => {
@@ -219,8 +234,12 @@ module.exports = {
   uploadPdfsService,
 
   handleQueryService,
+
   deleteLocalFiles,
-  deleteChatService
+  deleteChatService,
+
+  retrieveQueryHistory
+
 
 };
 
