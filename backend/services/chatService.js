@@ -1,5 +1,9 @@
+
+const mongoose = require('mongoose');
+
 const cloudinary = require('../config/cloudinary');
 const Chat = require('../models/Chat');
+
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -9,26 +13,34 @@ const Query = require('../models/Query')
 const Files = require('../models/Files');
 const queryRequestDto = require('../dto/queryRequestDto');
 const queryResponseDto = require('../dto/queryResponseDto');
+const { validateChat } = require('../utils/validator');
+const Validator = require('../utils/validator');
+const queryHistoryResponseDto = require('../dto/queryHistoryResponseDto');
 
 
 const handleQueryService = async (empId, role, chatId, queryText) => {
 
-  const requestQuery = new queryRequestDto(chatId, queryText);
-  queryRequestDto.validate(requestQuery, empId, role);
+
+
+      const requestQuery=new queryRequestDto(chatId,queryText);
+     await validateChat(chatId,empId,role);
+
 
   try {
     console.log(requestQuery.queryText);
-    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText });
+
+    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input":{"input": requestQuery.queryText}});
 
 
+     
+console.log(response.data.output)
+    
+      const chat = await Chat.findById(requestQuery.chatId);
+      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output.output,chat.chatName);
+     
+      if(chat.queries.length==0){chat.chatName=queryResponse.queryText;}
+      chat.queries.push(queryResponse);
 
-    console.log(response.data.output)
-
-    const chat = await Chat.findById(requestQuery.chatId);
-    const queryResponse = new queryResponseDto(requestQuery.chatId, requestQuery.queryText, response.data.output, chat.chatName);
-
-    if (chat.queries.length == 0) { chat.chatName = queryResponse.queryText; }
-    chat.queries.push(queryResponse);
     await chat.save();
     // return response.data;
     queryResponse.chatName = chat.chatName;
@@ -59,7 +71,8 @@ const uploadFilesToPythonAPI = async (files) => {
       }
     });
 
-    deleteLocalFiles(files);
+    //deleteLocalFiles(files);
+    console.log("response from python api --->",response.data);
 
     return response.data;
 
@@ -93,17 +106,18 @@ const uploadPdfsService = async (empId, email, files) => {
     // Assuming the file has already been saved to the local file system
     const cloudinaryResponse = await uploadOnCloudinary(filePath);
 
-    if (!cloudinaryResponse) {
-      throw new ApiError(500, 'Error uploading file to Cloudinary');
-    }
+      if (!cloudinaryResponse) {
+          throw new ApiError(500, 'Error uploading file to Cloudinary');
+      }
+     // deleteLocalFiles(files);
+      return {
+          filename: file.originalname,
+          fileUrl: cloudinaryResponse.secure_url,
+          uploadDate: new Date(),
+          uploadTime: new Date().toLocaleTimeString(),
+          fileExtension: file.mimetype.split('/')[1]
+      };
 
-    return {
-      filename: file.originalname,
-      fileUrl: cloudinaryResponse.secure_url,
-      uploadDate: new Date(),
-      uploadTime: new Date().toLocaleTimeString(),
-      fileExtension: file.mimetype.split('/')[1]
-    };
   });
 
   const uploadedFiles = await Promise.all(uploadPromises);
@@ -132,24 +146,24 @@ const uploadPdfsService = async (empId, email, files) => {
 
 const uploadOnCloudinary = async (localFilePath) => {
   try {
-    if (!localFilePath) return null;
-    // Upload the file to Cloudinary
-    const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "auto",
-      timeout: 60000
-    });
-    // File has been uploaded successfully
-    console.log("File is uploaded on Cloudinary: ", response.url);
-    // fs.unlinkSync(localFilePath);
-    return response;
+      if (!localFilePath) return null;
+      
+      const response = await cloudinary.uploader.upload(localFilePath, {
+          resource_type: "auto",
+          timeout: 60000
+      });
+     
+      console.log("File is uploaded on Cloudinary: ", response.url);
+      // fs.unlinkSync(localFilePath);
+      return response;
   } catch (error) {
-    console.error("Cloudinary Upload Error:", error);
-    fs.unlinkSync(localFilePath); // Remove the locally saved temporary file as the upload operation failed
-    return null;
+      console.error("Cloudinary Upload Error:", error);
+      fs.unlinkSync(localFilePath); 
+      return null;
   }
 };
 
-const deleteLocalFiles = (files) => {
+const deleteLocalFiles = async (files) => {
   files.forEach(file => {
     const filePath = path.join(__dirname, '../', file.path);
     fs.unlink(filePath, (err) => {
@@ -163,13 +177,92 @@ const deleteLocalFiles = (files) => {
 };
 
 
+const retrieveQueryHistory= async (empId, role, chatId)=>{
+
+  await Validator.validateChat(chatId,empId,role);
+
+  const chat=await Chat.findById(chatId)
+
+  const responseDto=new queryHistoryResponseDto(chat);
+
+    return responseDto;
+
+}
+
+
+
+const deleteChatService = async (chatId, empId, role) => {
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    throw new ApiError(400, 'Invalid chat ID');
+  }
+
+  const chat = await Chat.findById(chatId).populate('files');
+  console.log("chat empId-",chat.empId ,"users empId-", empId);
+  const emplId = chat.empId;
+ 
+  if (!chat) {
+    throw new ApiError(404, 'Chat not found');
+  }
+  if(emplId != empId && role != 'admin'){
+    throw new ApiError(403, 'You are unauthorized to delete');
+  }
+
+ 
+  const fileDeletionPromises = chat.files.map(file => {
+    return file.files.map(fileDetail => {
+      const publicId = fileDetail.fileUrl.split('/').pop().split('.')[0];
+      return cloudinary.uploader.destroy(publicId);
+    });
+  }).flat();
+
+  await Promise.all(fileDeletionPromises);
+
+ 
+ await Files.deleteMany({ _id: { $in: chat.files } });
+
+  
+   await Chat.deleteOne({ _id: chatId });
+
+  return { message: 'Chat and associated files deleted successfully' };
+};
+
+
+
+
+const deleteQueryFromChatService = async (chatId, queryId) => {
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) {
+    throw new ApiError(404, 'Chat not found');
+  }
+
+  const queryIndex = chat.queries.findIndex(query => query._id.toString() === queryId);
+
+  if (queryIndex === -1) {
+    throw new ApiError(404, 'Query not found in chat');
+  }
+
+  chat.queries.splice(queryIndex, 1);
+  await chat.save();
+
+  return chat;
+};
+
+
 
 module.exports = {
   uploadFilesToPythonAPI,
 
   uploadPdfsService,
 
-  handleQueryService
+  handleQueryService,
+
+  deleteLocalFiles,
+  deleteChatService,
+
+  retrieveQueryHistory,
+  deleteQueryFromChatService
+
 
 };
 

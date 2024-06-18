@@ -67,7 +67,7 @@ const login = asyncHandler(async (req, res) => {
 
     try {
         const token = await generateJWT(payload);
-        const response = new ApiResponse(200, { token }, "User logged in successfully");
+        const response = new ApiResponse(200, { user, token }, "User logged in successfully");
         res.status(response.statusCode).json(response);
     } catch (err) {
         throw new ApiError(500, "Token generation failed");
