@@ -16,6 +16,7 @@ const queryResponseDto = require('../dto/queryResponseDto');
 const { validateChat } = require('../utils/validator');
 const Validator = require('../utils/validator');
 const queryHistoryResponseDto = require('../dto/queryHistoryResponseDto');
+const calculateFileHash = require('../utils/calculateFileHash')
 
 
 const handleQueryService = async (empId, role, chatId, queryText) => {
@@ -94,7 +95,7 @@ const uploadFilesToPythonAPI = async (files) => {
 
 
 const uploadPdfsService = async (empId, email, files) => {
-  console.log("Files in Service:", files);
+  //console.log("Files in Service:", files);
 
   if (!files || files.length === 0) {
     throw new ApiError(400, 'No files uploaded');
@@ -102,6 +103,27 @@ const uploadPdfsService = async (empId, email, files) => {
 
   const uploadPromises = files.map(async file => {
     const filePath = path.join(__dirname, '../uploads', file.filename);
+
+    
+     const fileHash = await calculateFileHash(filePath);
+     console.log("fileHash",fileHash)
+     const existingFile = await Files.findOne({ 'files.fileHash': fileHash }, { 'files.$': 1 });
+
+     console.log(existingFile);
+
+     if (existingFile) {
+      console.log(`File ${file.filename} already exists.`);
+      const existingFileData = existingFile.files[0];
+      console.log(existingFileData)
+      return {
+        filename: file.originalname,
+        fileUrl: existingFileData.fileUrl,
+        uploadDate: existingFileData.uploadDate,
+        uploadTime: existingFileData.uploadTime,
+        fileExtension: file.mimetype.split('/')[1],
+        fileHash: existingFileData.fileHash
+      };
+    }
 
     // Assuming the file has already been saved to the local file system
     const cloudinaryResponse = await uploadOnCloudinary(filePath);
@@ -115,7 +137,8 @@ const uploadPdfsService = async (empId, email, files) => {
           fileUrl: cloudinaryResponse.secure_url,
           uploadDate: new Date(),
           uploadTime: new Date().toLocaleTimeString(),
-          fileExtension: file.mimetype.split('/')[1]
+          fileExtension: file.mimetype.split('/')[1],
+          fileHash
       };
 
   });
@@ -142,6 +165,10 @@ const uploadPdfsService = async (empId, email, files) => {
 
   return newChat;
 };
+
+
+
+
 
 
 const uploadOnCloudinary = async (localFilePath) => {
@@ -261,7 +288,7 @@ module.exports = {
   deleteChatService,
 
   retrieveQueryHistory,
-  deleteQueryFromChatService
+  deleteQueryFromChatService,
 
 
 };

@@ -11,7 +11,8 @@ const FileSchema = new mongoose.Schema({
             fileUrl: { type: String, required: true },
             uploadDate: { type: Date, default: Date.now },
             uploadTime: { type: String, default: () => new Date().toLocaleTimeString(), required: true },
-            fileExtension: { type: String, required: true } // New field for file extension
+            fileExtension: { type: String, required: true }, // New field for file extension
+            fileHash : { type: String, required : true}
         }
     ]
 }, { timestamps: true }); // Add timestamps option

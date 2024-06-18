@@ -47,12 +47,10 @@ const getChatTitles = asyncHandler(async (req, res) => {
 });
 
 
-const uploadMultiple = asyncHandler(async (req, res) => {
+const uploadMultiple = asyncHandler(async (req, res,next) => {
   try {
-    console.log("files in controller", req.files);
-
+    //console.log("files in controller", req.files);
     const user = req.userInfo;
-   
 
     // Call the Python API concurrently
     const pythonApiResponsePromise = uploadFilesToPythonAPI(req.files);
@@ -78,7 +76,10 @@ const uploadMultiple = asyncHandler(async (req, res) => {
     return res.status(500).send("Error occurred during upload.");
   } catch (error) {
     console.error("Upload error:", error);
-    res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
+    // res.status(error.statusCode || 500).send(error.message || 'Internal Server Error');
+    if(error instanceof ApiError)
+      next(error);
+    next(new ApiError(error.statusCode || 500, error.message || 'Internal Server Error'));
   }
 });
 
