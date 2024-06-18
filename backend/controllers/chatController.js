@@ -2,6 +2,7 @@
 const { uploadFilesToPythonAPI, uploadPdfsService,handleQueryService, retrieveQueryHistory,deleteLocalFiles, deleteChatService, deleteQueryFromChatService } = require('../services/chatService');
 
 
+
 const asyncHandler = require('../api/asyncHandler');
 
 const Chat = require('../models/Chat');
@@ -23,6 +24,27 @@ const handleQuery = asyncHandler(async (req, res, next) => {
 });
 
 
+// Get Chat Titles
+const getChatTitles = asyncHandler(async (req, res) => {
+  const user = req.userInfo;
+
+  try {
+      const chats = await Chat.find({ empId: user.empId }).select('chatName _id createdAt');
+
+      const chatTitles = chats.map(chat => ({
+          chatId: chat._id,
+          chatName: chat.chatName,
+          date: chat.createdAt,
+          time: chat.createdAt
+      }));
+
+      const response = new ApiResponse(200, chatTitles, "Chat titles retrieved successfully");
+      res.status(response.statusCode).json(response);
+  } catch (error) {
+      console.error('Error retrieving chat titles:', error);
+      res.status(500).send('Internal Server Error');
+  }
+});
 
 
 const uploadMultiple = asyncHandler(async (req, res) => {
@@ -145,16 +167,12 @@ const deleteQueryFromChat = asyncHandler(async (req, res) => {
 // });
 
 
-
-
-
-
-
-
-
 module.exports = {
   uploadMultiple,
   handleQuery,
+
+  getChatTitles , 
+
 
   deleteChat,
   
@@ -163,5 +181,6 @@ module.exports = {
   deleteQueryFromChat
 
   
+
 };
 
