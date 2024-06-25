@@ -18,25 +18,38 @@ const Validator = require('../utils/validator');
 const queryHistoryResponseDto = require('../dto/queryHistoryResponseDto');
 
 
-const handleQueryService = async (empId, role, chatId, queryText) => {
+const handleQueryService = async (empId, role, chatId, queryText,email=null) => {
 
+console.log("hiiii service ....")
 
-
-      const requestQuery=new queryRequestDto(chatId,queryText);
+     
+      if(chatId!=null)
      await validateChat(chatId,empId,role);
-
-
+      else 
+      {
+        const newChat = new Chat({
+          empId,
+          email,
+          files: null,
+          queries: []
+        });
+      
+        await newChat.save();
+        chatId=newChat._id;
+        console.log(chatId);
+      }
+      const requestQuery=new queryRequestDto(chatId,queryText);
   try {
     console.log(requestQuery.queryText);
 
-    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input":{"input": requestQuery.queryText}});
+    const response = await axios.post(`${process.env.PYTHON_API}/invoke`, { "input": requestQuery.queryText});
 
 
      
 console.log(response.data.output)
     
       const chat = await Chat.findById(requestQuery.chatId);
-      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output.output,chat.chatName);
+      const queryResponse=new queryResponseDto(requestQuery.chatId,requestQuery.queryText,response.data.output,chat.chatName);
      
       if(chat.queries.length==0){chat.chatName=queryResponse.queryText;}
       chat.queries.push(queryResponse);

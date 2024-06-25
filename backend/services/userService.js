@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const { v4: uuidv4 } = require('uuid');
 const { ApiError } = require('../api/ApiError');
 const {sendVerificationEmail} = require('./emailService');
+const { removeFile } = require('../utils/utilityFunctions');
 const cloudinary = require('cloudinary').v2;
 
 
@@ -99,9 +100,9 @@ const findUserByEmail = async (email) => {
 };
 
 // Function to find a user by employee ID
-const findUserByEmpId = async (empId) => {
+const findUserByEmpId = async (_id) => {
     try {
-        const user = await User.findOne({ empId });
+        const user = await User.findOne({ _id });
         if (!user) {
             throw new ApiError(404, 'User not found');
         }
@@ -128,14 +129,15 @@ const modifyUser = async (userData) => {
         designation,
         image
     } = userData;
-
+console.log("in service :- userData :- ",userData);
+console.log("email is :- ",email);
     // Find user by ID
     let user =  await User.findOne({ email });
-
+console.log("in service old user :- ",user);
     if (!user) {
         throw new ApiError(404, 'User not found');
     }
-
+const oldImage=user.image==image?null:user.image;
     // Update user data
     user.empId=empId;
     user.firstName = firstName;
@@ -149,20 +151,25 @@ const modifyUser = async (userData) => {
 
     // Save updated user data
     try{
+        console.log("hello !!")
    const updatedUser = await user.save();
     console.log('**in service **',updatedUser);
+    console.log("in service new user :- ",user);
+    removeFile(oldImage);
     return updatedUser;
     }
     catch(error)
-    {
-        return new ApiError(500, error.message);
+    {   if(user.image!=image)
+        removeFile(image);
+        throw new ApiError(500, error.message);
     }
    
 };
 
-const deleteUser = async (empId) => {
-    const user = await User.findOneAndDelete({ empId });
+const deleteUser = async (Id) => {
 
+    const user = await User.findOneAndDelete( Id );
+    console.log(user);
     if (!user) {
         throw new ApiError(404, 'User not found');
     }

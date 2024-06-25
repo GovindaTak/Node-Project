@@ -17,11 +17,11 @@ const { emailVerify } = require('../controllers/userController')
 
 router.get('/verify/:token',emailVerify);
 
-router.put('/:empId',authenticateUser, updateUser);
-router.delete('/:empId',authenticateUser, authorizeDepartment('admin'),deleteUserController);//only admin can delete the user 
+router.put('/:Id',authenticateUser, upload.single('image'),updateUser);
+router.delete('/:Id',authenticateUser, authorizeDepartment('admin'),deleteUserController);//only admin can delete the user 
 
 
-router.get('/user/:empId',authenticateUser, getUserById);
+router.get('/user/:Id',authenticateUser, getUserById);
 
 // router.route('/').post(register).get(authenticateUser,authorizeDepartment('admin'),getAllUsers);
 // router.post('/register', upload.single('image'), register);

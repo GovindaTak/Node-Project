@@ -10,6 +10,7 @@ const bcrypt = require("bcryptjs")
 const generateJWT = require("../utils/jwtGenerator");
 const User = require('../models/userModel');
 const cloudinary = require('../utils/cloudinary');
+const { uploadImage } = require('../utils/utilityFunctions');
 
 
 
@@ -45,7 +46,7 @@ const register = asyncHandler(async (req, res) => {
 
 
     if (newUser) {
-        const user = new UserResponseDto(newUser.empId, newUser.email, newUser.firstName, newUser.middleName, newUser.lastName, newUser.contactNumber, newUser.department, newUser.designation, newUser.image);
+        const user = new UserResponseDto(newUser.empId, newUser.email, newUser.firstName, newUser.middleName, newUser.lastName, newUser.contactNumber, newUser.department, newUser.designation, newUser.image,newUser._id);
 
 
         const response = new ApiResponse(201, [{ user }], "User registered successfully");
@@ -77,7 +78,8 @@ const emailVerify = asyncHandler(async (req, res) => {
 
 
 const updateUser = asyncHandler(async (req, res, next) => {
-    const userId = req.params.empId;
+    const userId = req.params.Id;
+  
     const userRequestData = new UserRequestDto(
         req.body.empId,
         req.body.firstName,
@@ -86,19 +88,22 @@ const updateUser = asyncHandler(async (req, res, next) => {
         req.body.contactNumber,
         req.body.department,
         req.body.designation,
-        req.body.image,
+        null,
         req.body.email,
         req.body.password
     );
 
     // Validate the request data
     UserRequestDto.validate(userRequestData);
+    const newImage=await uploadImage(req.file);
+    userRequestData.image=newImage==null?req.body.image:newImage;
 
+    console.log('***',userRequestData);
         // Update user data using service
         const updatedUser = await modifyUser(userRequestData);
-        console.log('***',updateUser);
+        console.log('***',updatedUser);
         // Create response DTO
-      const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+      const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image,updatedUser._id);
       console.log('***',user);
         // // Send success response
         // res.json(new ApiResponse(true, 'User data updated successfully', responseDto));
@@ -138,7 +143,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
 // get user by id
 const getUserById = asyncHandler(async (req, res) => {
-    const empId = req.params.empId;
+    const empId = req.params.Id;
     const user = await findUserByEmpId(empId);
   
    if (!user) {
@@ -154,7 +159,8 @@ const getUserById = asyncHandler(async (req, res) => {
         user.contactNumber,
         user.department,
         user.designation,
-        user.image
+        user.image,
+        user._id
     );
 
     const response = new ApiResponse(200, [{ user: userResponse }], "User fetched successfully");
@@ -163,14 +169,14 @@ const getUserById = asyncHandler(async (req, res) => {
 
 
 const deleteUserController = asyncHandler(async (req, res, next) => {
-    const { empId } = req.params;
+    const { Id } = req.params;
 
-    if (!empId) {
-        return next(new ApiError(400,[], 'Employee ID is required'));
+    if (!Id) {
+        return next(new ApiError(400,[], 'User ID is required'));
     }
    
-       const updatedUser= await deleteUser(empId);
-       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image);
+       const updatedUser= await deleteUser(Id);
+       const user = new UserResponseDto(updatedUser.empId, updatedUser.email, updatedUser.firstName, updatedUser.middleName, updatedUser.lastName, updatedUser.contactNumber, updatedUser.department, updatedUser.designation, updatedUser.image,Id);
         res.json(new ApiResponse(200,[{user}], 'User deleted successfully'));
    
 });

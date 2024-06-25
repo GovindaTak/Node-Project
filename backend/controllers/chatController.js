@@ -14,7 +14,7 @@ const axios = require('axios');
 const handleQuery = asyncHandler(async (req, res, next) => {
     const {  chatId, queryText } = req.body;
     try {
-        const result = await handleQueryService(req.userInfo.empId, req.role, chatId, queryText,);
+        const result = await handleQueryService(req.userInfo.empId, req.role, chatId, queryText,req.userInfo.email);
         res.json(new ApiResponse(200,[result] ,'Query handled successfully', result));
     } catch (error) {
         if(error instanceof ApiError)
