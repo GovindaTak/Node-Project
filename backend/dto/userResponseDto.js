@@ -3,7 +3,7 @@ class UserResponseDto {
 
     
         
-    constructor(empId, email, firstName, middleName, lastName, contactNumber, department, designation, image,id=null) {
+    constructor(empId, email, firstName, middleName, lastName, contactNumber, department, designation, image,id) {
         this.id=id;
 
         this.empId = empId;

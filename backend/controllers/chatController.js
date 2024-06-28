@@ -50,7 +50,6 @@ const getChatTitles = asyncHandler(async (req, res) => {
 const uploadMultiple = asyncHandler(async (req, res) => {
   try {
     console.log("files in controller", req.files);
-
     const user = req.userInfo;
    
 
