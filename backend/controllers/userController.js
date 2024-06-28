@@ -17,6 +17,7 @@ const { uploadImage } = require('../utils/utilityFunctions');
 
 //empId, firstName, middleName, lastName, contactNumber, department, designation, image, email, password
 const register = asyncHandler(async (req, res) => {
+   
     let imageUrl = '';
     console.log(req.file);
     if (req.file) {
