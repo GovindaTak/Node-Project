@@ -70,7 +70,7 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/your-repo/ai-node-project.git
+    git clone https://github.com/GovindaTak/Node-Project.git
     cd ai-node-project
     ```
 
@@ -84,7 +84,7 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 
 4. Start the server:
     ```sh
-    npm start
+    npm run server
     ```
 
 ## Usage
@@ -97,25 +97,25 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login
-- `POST /api/auth/forgot-password` - Forgot password
-- `POST /api/auth/reset-password` - Reset password
+- `POST http://localhost:5000/api/v1/users` - Register a new user
+- `POST http://localhost:5000/api/v1/users/1` - Login
+- `GET http://localhost:5000/api/v1/forgetPassword?empId=1009&email=govindatak19@gmail.com` - Forgot password
 
 ### User
-- `GET /api/users/profile` - View profile
-- `PUT /api/users/profile` - Update profile
-- `POST /api/users/chats` - Initiate new chat
-- `GET /api/users/chats` - View chat list
-- `GET /api/users/chats/:id` - View specific chat history
-- `DELETE /api/users/chats/:id` - Delete specific chat
+- `GET http://localhost:5000/api/v1/users/:id` - View profile
+- `PUT http://localhost:5000/api/v1/users/:id` - Update profile
+- `POST http://localhost:5000/api/v1/integration/upload-multiple` - Initiate new chat 
+- `GET http://localhost:5000/api/v1/integration/chat_titles` - View chat list
+- `GET http://localhost:5000/api/v1/integration/chat_history/666a99b08e4f1b886ecd9975 {:chatId}` - View specific chat history
+- `DELETE http://loacalhost:5000/api/v1/integration/delete-chat/:chatId` - Delete specific chat
+- `DELETE http://loacalhost:5000/api/v1/integration/chats/666be81b2cfafcebc5d38eb6/queries/666bf1fe2cfafcebc5d38ec2 {:chatId}` -delete perticular query from chat
+- `POST http://loacalhost:5000/api/v1/intigration/query_handler` -ask query from ai-model
 
 ### Admin
-- `GET /api/admin/users` - View all users
-- `PUT /api/admin/users/:id` - Update specific user
-- `GET /api/admin/users/:id/chats` - View chats of specific user
-- `PUT /api/admin/users/:id/deactivate` - Deactivate specific user
-- `GET /api/admin/users/deactivated` - View list of deactivated users
+- `GET http://localhost:5000/api/v1/users` - View all users
+- `PUT http://localhost:5000/api/v1/users/:id` - Update specific user
+- `GET http://localhost:5000/api/v1/integration/chat_titles/:user_id` - View chats of specific user
+- `DELETE http://localhost:5000/api/v1/users/1009 {user_id}` - Deactivate specific user
 
 ## Project Structure
 
@@ -128,8 +128,11 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 │   ├── routes
 │   ├── services
 │   ├── utils
-│   ├── validation
+│   ├── api
 │   └── app.js
+|   |---Dto
+|   |---uploads
+|   |---db
 ├── .env
 ├── .gitignore
 ├── package.json
