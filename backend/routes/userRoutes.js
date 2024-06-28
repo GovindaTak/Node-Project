@@ -26,7 +26,7 @@ router.get('/user/:Id',authenticateUser, getUserById);
 // router.route('/').post(register).get(authenticateUser,authorizeDepartment('admin'),getAllUsers);
 // router.post('/register', upload.single('image'), register);
 router.route('/').post(upload.single('image'), register).get(authenticateUser, authorizeDepartment('admin'), getAllUsers);
-router.post('/register', upload.single('image'), register);
+// router.post('/register', upload.single('image'), register);
 
 
 module.exports = router;

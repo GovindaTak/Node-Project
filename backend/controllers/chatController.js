@@ -10,6 +10,7 @@ const Chat = require('../models/Chat');
 const { ApiResponse } = require('../api/ApiResponse');
 const { ApiError } = require('../api/ApiError')
 const axios = require('axios');
+const User = require('../models/userModel')
 
 const handleQuery = asyncHandler(async (req, res, next) => {
     const {  chatId, queryText } = req.body;
@@ -26,8 +27,12 @@ const handleQuery = asyncHandler(async (req, res, next) => {
 
 // Get Chat Titles
 const getChatTitles = asyncHandler(async (req, res) => {
-  const user = req.userInfo;
 
+
+  //const user = req.userInfo;
+  const _id = req.params.Id;
+  const user = await User.findOne({ _id })
+  console.log(user)
   try {
       const chats = await Chat.find({ empId: user.empId }).select('chatName _id createdAt');
 
