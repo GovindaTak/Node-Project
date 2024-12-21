@@ -1,6 +1,7 @@
 # ai-node
 
 # AI-Node Project
+-----------------------
 
 Welcome to the AI-Node Project! This repository contains the source code for a ChatGPT-like demo web application developed by Atmecs Global Technology. This application allows employees to upload office-related documents and query them to get relevant results. The backend is built using Node.js and Express.js, integrating various utilities and services.
 
