@@ -3,7 +3,7 @@
 # AI-Node Project
 -----------------------
 
-Welcome to the AI-Node Project! This repository contains the source code for a ChatGPT-like demo web application developed by Atmecs Global Technology. This application allows employees to upload office-related documents and query them to get relevant results. The backend is built using Node.js and Express.js, integrating various utilities and services.
+Welcome to the AI-Node Project! This repository contains the source code for a ChatGPT-like demo web application. This application allows employees to upload office-related documents and query them to get relevant results. The backend is built using Node.js and Express.js, integrating various utilities and services.
 
 ## Table of Contents
 1. [Features](#features)
@@ -70,23 +70,23 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 ## Installation
 
 1. Clone the repository:
-    ```sh
+    
     git clone https://github.com/GovindaTak/Node-Project.git
     cd ai-node-project
-    ```
+
 
 2. Install dependencies:
-    ```sh
+    
     npm install
-    ```
+    
 
 3. Set up environment variables:
     Create a `.env` file in the root directory and add the necessary environment variables as shown in `.env.example`.
 
 4. Start the server:
-    ```sh
+    
     npm run server
-    ```
+    
 
 ## Usage
 
@@ -113,14 +113,14 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 - `POST http://loacalhost:5000/api/v1/intigration/query_handler` -ask query from ai-model
 
 ### Admin
-- `GET http://localhost:5000/api/v1/users` - View all users
-- `PUT http://localhost:5000/api/v1/users/:id` - Update specific user
-- `GET http://localhost:5000/api/v1/integration/chat_titles/:user_id` - View chats of specific user
-- `DELETE http://localhost:5000/api/v1/users/1009 {user_id}` - Deactivate specific user
+- GET http://localhost:5000/api/v1/users - View all users
+- PUT http://localhost:5000/api/v1/users/:id - Update specific user
+- GET http://localhost:5000/api/v1/integration/chat_titles/:user_id - View chats of specific user
+- DELETE http://localhost:5000/api/v1/users/1009 {user_id} - Deactivate specific user
 
 ## Project Structure
 
-```
+
 ├── src
 │   ├── config
 │   ├── controllers
@@ -138,7 +138,7 @@ Welcome to the AI-Node Project! This repository contains the source code for a C
 ├── .gitignore
 ├── package.json
 └── README.md
-```
+
 
 ## Contributing
 
